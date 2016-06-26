@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([pic32prog], [2.1.0], [sergev@vak.ru])
+AC_INIT([pic32prog], [2.1.0], [serge@vak.ru])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
