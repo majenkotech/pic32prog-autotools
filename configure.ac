@@ -142,8 +142,19 @@ case $host_os in
             LIBUSB_LIBS="-lusb"
         ])
         AS_IF([test "x$WANT_HID" = "x1"], [
-            HID_SRC="hid/freebsd/hid.c"
-            HID_OBJ='hid/freebsd/hid.$(OBJEXT)'
+            ARCH=`uname -m`
+            AS_IF([test "x$ARCH" != "xamd64"],[
+                AC_CHECK_LIB(iconv, iconv,[
+                    HID_SRC="hid/freebsd/hid.c"
+                    HID_OBJ='hid/freebsd/hid.$(OBJEXT)'
+                    LIBUSB_LIBS="${LIBUSB_LIBS} -liconv"
+                ],[
+                    WANT_HID=-1
+                ])
+            ],[
+                HID_SRC="hid/freebsd/hid.c"
+                HID_OBJ='hid/freebsd/hid.$(OBJEXT)'
+            ])
         ])
         ;;
     *mingw* )
@@ -329,5 +340,10 @@ echo
 AS_IF([test "x$WANT_USB" = "x-1"], [
     echo "Warning:"
     echo "    USB support could not be enabled. You may need to install libusb-1.0"
+    echo
+],);
+AS_IF([test "x$WANT_HID" = "x-1"], [
+    echo "Warning:"
+    echo "    HID support could not be enabled. You may need to install libiconv"
     echo
 ],);
