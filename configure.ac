@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.69])
+AC_PREREQ([2.10])
 AC_INIT([pic32prog], [2.1.0], [serge@vak.ru])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
@@ -80,6 +80,7 @@ case $host_os in
         AM_CONDITIONAL([OSX], true)
         AM_CONDITIONAL([LINUX], false)
         AM_CONDITIONAL([WINDOWS], false)
+        AM_CONDITIONAL([BSD], false)
         AS_IF([test "x$WANT_USB" = "x1"], [
             LIBUSB_PREFIX=`pkg-config --libs-only-L libusb-1.0 | cut -c3-`
             AC_SUBST([LIBUSB_PREFIX])
@@ -102,13 +103,13 @@ case $host_os in
             AS_HELP_STRING([--enable-ppc], [Enable PowerPC universal arch (OS X only)]))
 
         AS_IF([test "x$enable_32bit" != "xno"], [
-            OPT_ARCH+=" -arch i386"
+            OPT_ARCH="${OPT_ARCH} -arch i386"
         ])
         AS_IF([test "x$enable_64bit" != "xno"], [
-            OPT_ARCH+=" -arch x86_64"
+            OPT_ARCH="${OPT_ARCH} -arch x86_64"
         ])
         AS_IF([test "x$enable_ppc" = "xyes"], [
-            OPT_ARCH+=" -arch ppc"
+            OPT_ARCH="${OPT_ARCH} -arch ppc"
         ])
 
         AC_SUBST([OPT_ARCH])
@@ -118,6 +119,7 @@ case $host_os in
         AM_CONDITIONAL([OSX], false)
         AM_CONDITIONAL([LINUX], true)
         AM_CONDITIONAL([WINDOWS], false)
+        AM_CONDITIONAL([BSD], false)
         AX_PTHREAD
         AS_IF([test "x$WANT_USB" = "x1"], [
             PKG_CHECK_MODULES(LIBUSB, libusb-1.0,[
@@ -130,10 +132,25 @@ case $host_os in
             HID_OBJ='hid/linux/hid.$(OBJEXT)'
         ])
         ;;
+    *bsd* )
+        AM_CONDITIONAL([OSX], false)
+        AM_CONDITIONAL([LINUX], true)
+        AM_CONDITIONAL([WINDOWS], false)
+        AM_CONDITIONAL([BSD], true)
+        AX_PTHREAD
+        AS_IF([test "x$WANT_USB" = "x1"], [
+            LIBUSB_LIBS="-lusb"
+        ])
+        AS_IF([test "x$WANT_HID" = "x1"], [
+            HID_SRC="hid/freebsd/hid.c"
+            HID_OBJ='hid/freebsd/hid.$(OBJEXT)'
+        ])
+        ;;
     *mingw* )
         AM_CONDITIONAL([OSX], false)
         AM_CONDITIONAL([LINUX], false)
         AM_CONDITIONAL([WINDOWS], true)
+        AM_CONDITIONAL([BSD], false)
         AS_IF([test "x$WANT_HID" = "x1"], [
             HID_SRC="hid/linux/hid.c"
             HID_OBJ='hid/linux/hid.$(OBJEXT)'
@@ -153,31 +170,31 @@ esac
 
 AS_IF([test "x$enable_an1388" != "xno"], [
     AS_IF([test "x$WANT_USB$WANT_HID" = "x11"], [
-        ADAPTER_SRC+=" adapters/adapter-an1388.c"
-        ADAPTER_OBJ+=' adapters/adapter-an1388.$(OBJEXT)'
+        ADAPTER_SRC="${ADAPTER_SRC} adapters/adapter-an1388.c"
+        ADAPTER_OBJ="${ADAPTER_OBJ} adapters/adapter-an1388.\$(OBJEXT)"
         AC_DEFINE([ENABLE_AN1388],[1],[AN1388 HID Adapter is enabled])
         WITH_AN1388=1
     ],)
 ])
 
 AS_IF([test "x$enable_an1388_uart" != "xno"], [
-    ADAPTER_SRC+=" adapters/adapter-an1388-uart.c"
-    ADAPTER_OBJ+=' adapters/adapter-an1388-uart.$(OBJEXT)'
+    ADAPTER_SRC="${ADAPTER_SRC} adapters/adapter-an1388-uart.c"
+    ADAPTER_OBJ="${ADAPTER_OBJ} adapters/adapter-an1388-uart.\$(OBJEXT)"
     AC_DEFINE([ENABLE_AN1388_UART],[1],[AN1388 UART Adapter is enabled])
     WITH_AN1388_UART=1
 ])
 
 AS_IF([test "x$enable_bitbang" != "xno"], [
-    ADAPTER_SRC+=" adapters/adapter-bitbang.c"
-    ADAPTER_OBJ+=' adapters/adapter-bitbang.$(OBJEXT)'
+    ADAPTER_SRC="${ADAPTER_SRC} adapters/adapter-bitbang.c"
+    ADAPTER_OBJ="${ADAPTER_OBJ} adapters/adapter-bitbang.\$(OBJEXT)"
     AC_DEFINE([ENABLE_BITBANG],[1],[BitBang Adapter is enabled])
     WITH_BITBANG=1
 ])
 
 AS_IF([test "x$enable_hidboot" != "xno"], [
     AS_IF([test "x$WANT_USB$WANT_HID" = "x11"], [
-        ADAPTER_SRC+=" adapters/adapter-hidboot.c"
-        ADAPTER_OBJ+=' adapters/adapter-hidboot.$(OBJEXT)'
+        ADAPTER_SRC="${ADAPTER_SRC} adapters/adapter-hidboot.c"
+        ADAPTER_OBJ="${ADAPTER_OBJ} adapters/adapter-hidboot.\$(OBJEXT)"
         AC_DEFINE([ENABLE_HIDBOOT],[1],[HidBoot Adapter is enabled])
         WITH_HIDBOOT=1
     ],)
@@ -185,8 +202,8 @@ AS_IF([test "x$enable_hidboot" != "xno"], [
 
 AS_IF([test "x$enable_mpsse" != "xno"], [
     AS_IF([test "x$WANT_USB" = "x1"], [
-        ADAPTER_SRC+=" adapters/adapter-mpsse.c"
-        ADAPTER_OBJ+=' adapters/adapter-mpsse.$(OBJEXT)'
+        ADAPTER_SRC="${ADAPTER_SRC} adapters/adapter-mpsse.c"
+        ADAPTER_OBJ="${ADAPTER_OBJ} adapters/adapter-mpsse.\$(OBJEXT)"
         AC_DEFINE([ENABLE_MPSSE],[1],[MPSSE Adapter is enabled])
         WITH_MPSSE=1
     ],)
@@ -194,24 +211,24 @@ AS_IF([test "x$enable_mpsse" != "xno"], [
 
 AS_IF([test "x$enable_pickit2" != "xno"], [
     AS_IF([test "x$WANT_USB$WANT_HID" = "x11"], [
-        ADAPTER_SRC+=" adapters/adapter-pickit2.c"
-        ADAPTER_OBJ+=' adapters/adapter-pickit2.$(OBJEXT)'
+        ADAPTER_SRC="${ADAPTER_SRC} adapters/adapter-pickit2.c"
+        ADAPTER_OBJ="${ADAPTER_OBJ} adapters/adapter-pickit2.\$(OBJEXT)"
         AC_DEFINE([ENABLE_PICKIT2],[1],[PICKIT2 Adapter is enabled])
         WITH_PICKIT2=1
     ],)
 ])
 
 AS_IF([test "x$enable_stk500v2" != "xno"], [
-    ADAPTER_SRC+=" adapters/adapter-stk500v2.c"
-    ADAPTER_OBJ+=' adapters/adapter-stk500v2.$(OBJEXT)'
+    ADAPTER_SRC="${ADAPTER_SRC} adapters/adapter-stk500v2.c"
+    ADAPTER_OBJ="${ADAPTER_OBJ} adapters/adapter-stk500v2.\$(OBJEXT)"
     AC_DEFINE([ENABLE_STK500V2],[1],[STK500v2 Adapter is enabled])
     WITH_STK500V2=1
 ])
 
 AS_IF([test "x$enable_uhb" != "xno"], [
     AS_IF([test "x$WANT_USB$WANT_HID" = "x11"], [
-        ADAPTER_SRC+=" adapters/adapter-uhb.c"
-        ADAPTER_OBJ+=' adapters/adapter-uhb.$(OBJEXT)'
+        ADAPTER_SRC="${ADAPTER_SRC} adapters/adapter-uhb.c"
+        ADAPTER_OBJ="${ADAPTER_OBJ} adapters/adapter-uhb.\$(OBJEXT)"
         AC_DEFINE([ENABLE_UHB],[1],[UHB Adapter is enabled])
         WITH_UHB=1
     ],)
