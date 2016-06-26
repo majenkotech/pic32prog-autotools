@@ -9,6 +9,8 @@ AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
 #LT_INIT
 AC_CONFIG_MACRO_DIR([m4])
 
+AM_SILENT_RULES([yes])
+
 
 
 # Checks for programs.
