@@ -8,6 +8,22 @@ Compiling:
     $ ./configure
     $ make
 
+Supported Platforms
+-------------------
+
+Compiling is known to work on:
+
+* Linux (Debian Jessie, etc)
+* FreeBSD 10.3
+* OpenBSD 5.9
+* OS X Snow Leopard
+
+Cross-compiling on Linux is known to work for:
+
+* Windows (i686-w64-mingw)
+* OpenWRT MIPS - Arduino Yun, Dragino, etc, without USB drivers (mips-linux-uclibc)
+* ARM Linux - Raspberry Pi, etc (arm-linux-gnueabihf)
+
 Cross-compiling for Windows:
 ----------------------------
 
