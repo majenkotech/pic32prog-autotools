@@ -1,0 +1,9 @@
+aclocal.m4
+autom4te.cache
+compile
+compile-all
+config.guess
+config.sub
+install-sh
+missing
+
