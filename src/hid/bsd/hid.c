@@ -51,6 +51,8 @@
 
 #include "hidapi.h"
 
+#include "config.h"
+
 #ifdef __ANDROID__
 
 /* Barrier implementation because Android/Bionic don't have pthread_barrier.
@@ -397,8 +399,8 @@ static wchar_t *get_usb_string(libusb_device_handle *dev, uint8_t idx)
 	size_t inbytes;
 	size_t outbytes;
 	size_t res;
-#ifdef __FreeBSD__
-	const char *inptr;
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
+	ICONV_CONST char *inptr;
 #else
 	char *inptr;
 #endif

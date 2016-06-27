@@ -146,10 +146,11 @@ case $host_os in
             ],[WANT_USB=-1; WANT_HID=0; LIBUSB_STATIC=''])
         ])
         AS_IF([test "x$WANT_HID" = "x1"], [
-            AC_CHECK_LIB(iconv, libiconv_open,[
+            AM_ICONV
+            AS_IF([test "x$am_cv_func_iconv" = "xyes"], [
                 HID_SRC="hid/bsd/hid.c"
                 HID_OBJ='hid/bsd/hid.$(OBJEXT)'
-                LIBUSB_LIBS="${LIBUSB_LIBS} -liconv"
+                LIBUSB_LIBS="${LIBUSB_LIBS} $LIBICONV"
             ],[
                 WANT_HID=-1
             ])
@@ -244,15 +245,16 @@ AS_IF([test "x$enable_uhb" != "xno"], [
 ])
 
 
+AC_MSG_CHECKING([build number])
+GITCOUNT=0
 if [[ -d .git ]]; then
-    GITCOUNT=`git rev-list HEAD --count`
+    GITCOUNT=`git rev-list HEAD --count` 2>&5
 else
     if [[ -f .version ]]; then
         GITCOUNT=`cat .version`
-    else
-        GITCOUNT=0-detatched
     fi
 fi
+AC_MSG_RESULT([$GITCOUNT])
 
 AC_SUBST([GITCOUNT])
 
