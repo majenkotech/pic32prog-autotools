@@ -129,8 +129,14 @@ case $host_os in
             PKG_CHECK_MODULES(UDEV, libudev,,[WANT_USB=-1; WANT_HID=0; LIBUSB_STATIC=''])
         ])
         AS_IF([test "x$WANT_HID" = "x1"], [
-            HID_SRC="hid/linux/hid.c"
-            HID_OBJ='hid/linux/hid.$(OBJEXT)'
+            AM_ICONV
+            AS_IF([test "x$am_cv_func_iconv" = "xyes"], [
+                HID_SRC="hid/linux/hid.c"
+                HID_OBJ='hid/linux/hid.$(OBJEXT)'
+                LIBUSB_LIBS="${LIBUSB_LIBS} $LIBICONV"
+            ],[
+                WANT_HID=-1
+            ])
         ])
         ;;
     *bsd* )
