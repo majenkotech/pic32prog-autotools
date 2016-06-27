@@ -12,7 +12,6 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_SILENT_RULES([yes])
 
 
-
 # Checks for programs.
 AC_PROG_CC
 PKG_PROG_PKG_CONFIG
@@ -135,27 +134,24 @@ case $host_os in
         ])
         ;;
     *bsd* )
+        LDFLAGS="${LDFLAGS} -L/usr/local/lib"
+        CFLAGS="${CFLAGS} -I/usr/local/include"
         AM_CONDITIONAL([OSX], false)
         AM_CONDITIONAL([LINUX], true)
         AM_CONDITIONAL([WINDOWS], false)
         AM_CONDITIONAL([BSD], true)
         AX_PTHREAD
         AS_IF([test "x$WANT_USB" = "x1"], [
-            LIBUSB_LIBS="-lusb"
+            PKG_CHECK_MODULES(LIBUSB, libusb-1.0,[
+            ],[WANT_USB=-1; WANT_HID=0; LIBUSB_STATIC=''])
         ])
         AS_IF([test "x$WANT_HID" = "x1"], [
-            ARCH=`uname -m`
-            AS_IF([test "x$ARCH" != "xamd64"],[
-                AC_CHECK_LIB(iconv, iconv,[
-                    HID_SRC="hid/freebsd/hid.c"
-                    HID_OBJ='hid/freebsd/hid.$(OBJEXT)'
-                    LIBUSB_LIBS="${LIBUSB_LIBS} -liconv"
-                ],[
-                    WANT_HID=-1
-                ])
+            AC_CHECK_LIB(iconv, libiconv_open,[
+                HID_SRC="hid/bsd/hid.c"
+                HID_OBJ='hid/bsd/hid.$(OBJEXT)'
+                LIBUSB_LIBS="${LIBUSB_LIBS} -liconv"
             ],[
-                HID_SRC="hid/freebsd/hid.c"
-                HID_OBJ='hid/freebsd/hid.$(OBJEXT)'
+                WANT_HID=-1
             ])
         ])
         ;;
