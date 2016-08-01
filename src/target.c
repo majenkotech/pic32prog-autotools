@@ -498,6 +498,7 @@ target_t *target_open(const char *port_name, int baud_rate)
 
     if (open_retries > 1) {
         fprintf(stdout, "\n*** Enter programming mode now. ***\n\n");
+        fflush(stdout);
     }
 
     while(open_retries > 0) {
