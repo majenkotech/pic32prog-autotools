@@ -609,6 +609,7 @@ int HID_API_EXPORT HID_API_CALL hid_write(hid_device *dev, const unsigned char *
 	OVERLAPPED ol;
 	unsigned char *buf;
 	memset(&ol, 0, sizeof(ol));
+    int i;
 
 	/* Make sure the right number of bytes are passed to WriteFile. Windows
 	   expects the number of bytes which are in the _longest_ report (plus
@@ -626,9 +627,14 @@ int HID_API_EXPORT HID_API_CALL hid_write(hid_device *dev, const unsigned char *
 		memcpy(buf, data, length);
 		memcpy(buf + 1, data, length);
 		memset(buf + length + 1, 0, dev->output_report_length - length);
+        buf[0] = 0;
 		length = dev->output_report_length;
 	}
 
+    for (i = 0; i < length; i++) {
+        printf("%02x ", buf[i]);
+    }
+    printf("\n");
 	res = WriteFile(dev->device_handle, buf, length, NULL, &ol);
 	
 	if (!res) {
