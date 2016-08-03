@@ -631,10 +631,6 @@ int HID_API_EXPORT HID_API_CALL hid_write(hid_device *dev, const unsigned char *
 		length = dev->output_report_length;
 	}
 
-    for (i = 0; i < length; i++) {
-        printf("%02x ", buf[i]);
-    }
-    printf("\n");
 	res = WriteFile(dev->device_handle, buf, length, NULL, &ol);
 	
 	if (!res) {
