@@ -8,7 +8,12 @@ function bundle {
     SRC=$1
     OS=$2
     mkdir -p tmp/pic32prog
-    cp $SRC tmp/pic32prog/pic32prog
+    if [ "$OS" = "windows" ]; then
+        cp $SRC tmp/pic32prog/pic32prog.exe
+    else
+        cp $SRC tmp/pic32prog/pic32prog
+    fi
+
     tar -C tmp -zcf release/pic32prog-${OS}-${VER}.tar.gz pic32prog
     rm -rf tmp
     (
