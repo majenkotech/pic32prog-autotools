@@ -27,6 +27,7 @@
 #define CMD_PROGRAM_FLASH   0x03
 #define CMD_READ_CRC        0x04
 #define CMD_JUMP_APP        0x05
+#define CMD_GET_DEVID       0x06
 
 typedef struct {
     /* Common part */
@@ -79,16 +80,38 @@ static void an1388_send(hid_device *hiddev, unsigned char *buf, unsigned nbytes)
         }
         fprintf(stderr, "\n");
     }
-    hid_write(hiddev, buf, 64);
+
+    unsigned char *b = buf;
+
+    unsigned int towrite = nbytes;
+    while (towrite > 0) {
+        int wr = towrite > 64 ? 64 : towrite;
+        hid_write(hiddev, b, wr);
+        b += wr;
+        towrite -= wr;
+    }
+        
 }
 
 static int an1388_recv(hid_device *hiddev, unsigned char *buf)
 {
     int n;
 
+    int q = 0;
+
     n = hid_read(hiddev, buf, 64);
-    if (n <= 0) {
+    while (n == 0 && q < 10) {
+        n = hid_read(hiddev, buf, 64);
+        q++;
+    }
+
+    if (n < 0) {
         fprintf(stderr, "hidboot: error %d receiving packet\n", n);
+        exit(-1);
+    }
+
+    if (q >= 10) {
+        fprintf(stderr, "hidboot: timeout receiving packet\n");
         exit(-1);
     }
     if (debug_level > 0) {
@@ -120,7 +143,7 @@ static inline unsigned add_byte(unsigned char c,
 static void an1388_command(an1388_adapter_t *a, unsigned char cmd,
     unsigned char *data, unsigned data_len)
 {
-    unsigned char buf [64];
+    unsigned char buf [128]; // Important: need enough room for every byte to be DLEd
     unsigned i, n, c, crc;
 
     if (debug_level > 0) {
@@ -204,7 +227,16 @@ static void an1388_close(adapter_t *adapter, int power_on)
  */
 static unsigned an1388_get_idcode(adapter_t *adapter)
 {
-    return 0xDEAFB00B;
+    an1388_adapter_t *a = (an1388_adapter_t*) adapter;
+
+    an1388_command(a, CMD_GET_DEVID, 0, 0);
+    if (a->reply_len != 5 || a->reply[0] != CMD_GET_DEVID) {
+        return 0xDEAFB00B;
+    }
+
+    unsigned long devid = a->reply[1] | (a->reply[2] << 8) | (a->reply[3] << 16) | (a->reply[4] << 24);
+
+    return devid;
 }
 
 /*
