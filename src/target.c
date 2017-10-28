@@ -361,7 +361,7 @@ static adapter_t *open_usb_adapter(const char *port_name, int report)
         adapter_t *a = NULL;
 #ifdef ENABLE_PICKIT2
         if (! a)
-            adapter_open_pickit2(0, 0, 0, report);
+            a = adapter_open_pickit2(0, 0, 0, report);
         if (! a)
             a = adapter_open_pickit3(0, 0, 0, report);
 #endif
