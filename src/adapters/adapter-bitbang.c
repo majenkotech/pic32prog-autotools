@@ -1202,9 +1202,9 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
     serial_write(&ch, 1);
     n = serial_read(buffer, 14, 250);
 
-    if (n == 14 && memcmp(buffer, "ascii ICSP v1", 13) == 0)
+    if (n == 14 && memcmp(buffer, "ascii ICSP v1", 13) == 0) {
         conprintf(" OK2 - %s\n", buffer);
-    else {
+    } else {
         fprintf(stderr, "\nBad response from 'ascii ICSP' adapter\n");
         serial_close();
         free(a);
