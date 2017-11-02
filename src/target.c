@@ -19,6 +19,7 @@
 #include "adapter.h"
 #include "localize.h"
 #include "pic32.h"
+#include "console.h"
 
 #include "config.h"
 
@@ -497,7 +498,7 @@ target_t *target_open(const char *port_name, int baud_rate)
     if (open_retries == 0) open_retries = 1;
 
     if (open_retries > 1) {
-        fprintf(stdout, "\n*** Enter programming mode now. ***\n\n");
+        conprintf("\n*** Enter programming mode now. ***\n\n");
         fflush(stdout);
     }
 
@@ -598,7 +599,6 @@ void target_add_variant(char *name, unsigned id,
 {
     int i;
 
-    //printf("'%s'\t%07x\t'%s'\t%uk\n", name, id, family, flash_kbytes);
     for (i=0; i<TABSZ; i++) {
         if (pic32_tab[i].devid == 0 ||
             id == pic32_tab[i].devid) {
@@ -650,7 +650,7 @@ void target_print_devcfg(target_t *t)
     if (devcfg3 == 0 && devcfg2 == 0 && devcfg1 == 0 && devcfg0 == 0)
         return;
 
-    printf(_("Configuration:\n"));
+    conprintf(_("Configuration:\n"));
     t->family->print_devcfg(devcfg0, devcfg1, devcfg2, devcfg3);
 }
 
@@ -673,7 +673,7 @@ void target_read_block(target_t *t, unsigned addr,
     unsigned nwords, unsigned *data)
 {
     if (! t->adapter->read_data) {
-        printf(_("\nData reading not supported by the adapter.\n"));
+        conprintf(_("\nData reading not supported by the adapter.\n"));
         exit(1);
     }
 
@@ -710,7 +710,7 @@ void target_verify_block(target_t *t, unsigned addr,
         expected = data [i];
         word = block [i];
         if (word != expected) {
-            printf(_("\nerror at address %08X: file=%08X, mem=%08X\n"),
+            conprintf(_("\nerror at address %08X: file=%08X, mem=%08X\n"),
                 addr + i*4, expected, word);
             exit(1);
         }
@@ -723,10 +723,10 @@ void target_verify_block(target_t *t, unsigned addr,
 int target_erase(target_t *t)
 {
     if (t->adapter->erase_chip) {
-        printf(_("        Erase: "));
+        conprintf(_("        Erase: "));
         fflush(stdout);
         t->adapter->erase_chip(t->adapter);
-        printf(_("done\n"));
+        conprintf(_("done\n"));
     }
     return 1;
 }

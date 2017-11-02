@@ -24,6 +24,7 @@
 
 #include "adapter.h"
 #include "pic32.h"
+#include "console.h"
 
 typedef struct {
     uint16_t vid;
@@ -1047,7 +1048,7 @@ failed: libusb_release_interface(a->usbdev, 0);
         mpsse_reset(a, 0, 0, 0);
         goto failed;
     }
-    printf("      Adapter: %s\n", a->name);
+    conprintf("      Adapter: %s\n", a->name);
 
     a->adapter.block_override = 0;
     a->adapter.flags = (AD_PROBE | AD_ERASE | AD_READ | AD_WRITE);

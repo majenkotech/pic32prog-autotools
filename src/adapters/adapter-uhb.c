@@ -17,6 +17,7 @@
 #include "adapter.h"
 #include "hidapi.h"
 #include "pic32.h"
+#include "console.h"
 
 /* Bootloader commands */
 #define CMD_NON     0           /* 'Idle' */
@@ -302,17 +303,17 @@ adapter_t *adapter_open_uhb(int vid, int pid, const char *serial, int report)
     a->adapter.user_start  = 0x1d000000;
     a->adapter.user_nbytes = a->boot_start & 0x00ffffff;
     a->adapter.boot_nbytes = 12*1024 - a->erase_size;
-    printf("      Adapter: UHB Bootloader '%s', Version %x.%02x\n",
+    conprintf("      Adapter: UHB Bootloader '%s', Version %x.%02x\n",
         a->name, a->version >> 8, a->version & 0xff);
-    printf(" Program area: %08x-%08x, %08x-%08x\n", a->adapter.user_start,
+    conprintf(" Program area: %08x-%08x, %08x-%08x\n", a->adapter.user_start,
         a->adapter.user_start + a->adapter.user_nbytes - 1,
         0x1fc00000, 0x1fc00000+ a->adapter.boot_nbytes - 1);
 
     if (debug_level > 0) {
-        printf("   Flash size: %u bytes\n", a->flash_size);
-        printf("  Write block: %u bytes\n", a->write_size);
-        printf("  Erase block: %u bytes\n", a->erase_size);
-        printf("   Boot start: %08x\n", a->boot_start);
+        conprintf("   Flash size: %u bytes\n", a->flash_size);
+        conprintf("  Write block: %u bytes\n", a->write_size);
+        conprintf("  Erase block: %u bytes\n", a->erase_size);
+        conprintf("   Boot start: %08x\n", a->boot_start);
     }
 
     /* Enter Bootloader mode. */

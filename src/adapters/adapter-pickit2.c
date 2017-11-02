@@ -21,6 +21,7 @@
 #include "hidapi.h"
 #include "pickit2.h"
 #include "pic32.h"
+#include "console.h"
 
 typedef struct {
     /* Common part */
@@ -855,7 +856,7 @@ static adapter_t *open_pickit(hid_device *hiddev, int is_pk3)
         vers_minor = a->reply[1];
         vers_rev = a->reply[2];
     }
-    printf("      Adapter: %s Version %d.%d.%d\n",
+    conprintf("      Adapter: %s Version %d.%d.%d\n",
         a->name, vers_major, vers_minor, vers_rev);
 
     /* Detach power from the board. */

@@ -17,6 +17,7 @@
 #include "adapter.h"
 #include "hidapi.h"
 #include "pic32.h"
+#include "console.h"
 
 /* Bootloader commands */
 #define CMD_QUERY_DEVICE        0x02
@@ -274,8 +275,8 @@ adapter_t *adapter_open_hidboot(int vid, int pid, const char *serial, int report
 
     a->adapter.user_start = *(unsigned*) &a->reply[4] & 0x1fffffff;
     a->adapter.user_nbytes = *(unsigned*) &a->reply[8] & 0x0fffffff;
-    printf("      Adapter: HID Bootloader\n");
-    printf(" Program area: %08x-%08x\n", a->adapter.user_start,
+    conprintf("      Adapter: HID Bootloader\n");
+    conprintf(" Program area: %08x-%08x\n", a->adapter.user_start,
         a->adapter.user_start + a->adapter.user_nbytes - 1);
 
     a->adapter.block_override = 0;

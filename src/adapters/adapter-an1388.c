@@ -17,6 +17,7 @@
 #include "adapter.h"
 #include "hidapi.h"
 #include "pic32.h"
+#include "console.h"
 
 #define FRAME_SOH           0x01
 #define FRAME_EOT           0x04
@@ -424,12 +425,12 @@ adapter_t *adapter_open_an1388(int vid, int pid, const char *serial, int report)
 
     /* Read version of adapter. */
     an1388_command(a, CMD_READ_VERSION, 0, 0);
-    printf("      Adapter: AN1388 Bootloader Version %d.%d\n",
+    conprintf("      Adapter: AN1388 Bootloader Version %d.%d\n",
         a->reply[1], a->reply[2]);
 
     a->adapter.user_start = 0x1d000000;
     a->adapter.user_nbytes = 512 * 1024;
-    printf(" Program area: %08x-%08x\n", a->adapter.user_start,
+    conprintf(" Program area: %08x-%08x\n", a->adapter.user_start,
         a->adapter.user_start + a->adapter.user_nbytes - 1);
     a->adapter.block_override = 0;
     a->adapter.flags = (AD_PROBE | AD_ERASE | AD_READ | AD_WRITE);

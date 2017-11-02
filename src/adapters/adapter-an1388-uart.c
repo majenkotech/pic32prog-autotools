@@ -14,6 +14,7 @@
 #include "adapter.h"
 #include "pic32.h"
 #include "serial.h"
+#include "console.h"
 
 #define FRAME_SOH           0x01
 #define FRAME_EOT           0x04
@@ -379,12 +380,12 @@ adapter_t *adapter_open_an1388_uart(const char *port, int baud_rate)
         /* bad reply or no device connected */
         return 0;
     }
-    printf("      Adapter: AN1388 UART Bootloader Version %d.%d\n",
+    conprintf("      Adapter: AN1388 UART Bootloader Version %d.%d\n",
         a->reply[1], a->reply[2]);
 
     a->adapter.user_start = 0x1d000000;
     a->adapter.user_nbytes = 512 * 1024;
-    printf(" Program area: %08x-%08x\n", a->adapter.user_start,
+    conprintf(" Program area: %08x-%08x\n", a->adapter.user_start,
         a->adapter.user_start + a->adapter.user_nbytes - 1);
 
     a->adapter.block_override = 0;

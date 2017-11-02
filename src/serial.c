@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "adapter.h"
+#include "console.h"
 
 #if defined(__WIN32__) || defined(WIN32)
     #include <windows.h>
@@ -127,7 +128,7 @@ static int baud_encode(int bps)
     case 4000000: return B4000000;
 #endif
     }
-printf("Unknown baud\n");
+conprintf("Unknown baud\n");
     return -1;
 #endif
 }
@@ -201,7 +202,7 @@ again:
     if (got < 0) {
         if (errno == EINTR || errno == EAGAIN) {
             if (debug_level > 1)
-                printf("serial_read: retry on select\n");
+                conprintf("serial_read: retry on select\n");
             goto again;
         }
         fprintf(stderr, "serial_read: select error: %s\n", strerror(errno));
@@ -210,7 +211,7 @@ again:
 #endif
     if (got == 0) {
         if (debug_level > 1)
-            printf("serial_read: no characters to read\n");
+            conprintf("serial_read: no characters to read\n");
         return 0;
     }
 

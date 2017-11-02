@@ -13,6 +13,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "target.h"
+#include "console.h"
 
 static const char *confname;
 static char *bufr;
@@ -288,14 +289,14 @@ static void configure_parameter(char *section, char *param, char *value)
     if (strcasecmp(param, "id") == 0) {
         id = strtoul(value, 0, 0);
         if (debug_level > 1)
-            printf("[%s] Id = %07x\n", section, id);
+            conprintf("[%s] Id = %07x\n", section, id);
 
     } else if (strcasecmp(param, "family") == 0) {
         if (family)
             free(family);
         family = strdup(value);
         if (debug_level > 1)
-            printf("[%s] Family = %s\n", section, family);
+            conprintf("[%s] Family = %s\n", section, family);
 
     } else if (strcasecmp(param, "flash") == 0) {
         flash_kbytes = strtoul(value, &ep, 0);
@@ -309,7 +310,7 @@ static void configure_parameter(char *section, char *param, char *value)
                 confname, value);
         }
         if (debug_level > 1)
-            printf("[%s] Flash = %uk\n", section, flash_kbytes);
+            conprintf("[%s] Flash = %uk\n", section, flash_kbytes);
     } else {
         fprintf(stderr, "%s: Unknown parameter: %s = %s\n",
             confname, param, value);

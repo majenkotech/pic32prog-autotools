@@ -24,6 +24,7 @@
 #include "serial.h"
 #include "localize.h"
 #include "adapter.h"
+#include "console.h"
 
 #include "config.h"
 
@@ -57,6 +58,8 @@ int total_bytes;
 
 unsigned long open_retries = 1;
 unsigned force;
+
+int quiet = 0;
 
 
 #define devcfg3 (*(unsigned*) &boot_data [devcfg_offset])
@@ -362,11 +365,11 @@ void do_probe()
     }
 
     boot_bytes = target_boot_bytes(target);
-    printf(_("    Processor: %s (id %08X)\n"), target_cpu_name(target),
+    conprintf(_("    Processor: %s (id %08X)\n"), target_cpu_name(target),
         target_idcode(target));
-    printf(_(" Flash memory: %d kbytes\n"), target_flash_bytes(target) / 1024);
+    conprintf(_(" Flash memory: %d kbytes\n"), target_flash_bytes(target) / 1024);
     if (boot_bytes > 0)
-        printf(_("  Boot memory: %d kbytes\n"), boot_bytes / 1024);
+        conprintf(_("  Boot memory: %d kbytes\n"), boot_bytes / 1024);
     target_print_devcfg(target);
 }
 
@@ -460,11 +463,11 @@ void do_program(char *filename)
         blocksz = target_block_size(target);
     }
     devcfg_offset = target_devcfg_offset(target);
-    printf(_("    Processor: %s\n"), target_cpu_name(target));
-    printf(_(" Flash memory: %d kbytes\n"), flash_bytes / 1024);
+    conprintf(_("    Processor: %s\n"), target_cpu_name(target));
+    conprintf(_(" Flash memory: %d kbytes\n"), flash_bytes / 1024);
     if (boot_bytes > 0)
-        printf(_("  Boot memory: %d kbytes\n"), boot_bytes / 1024);
-    printf(_("         Data: %d bytes\n"), total_bytes);
+        conprintf(_("  Boot memory: %d kbytes\n"), boot_bytes / 1024);
+    conprintf(_("         Data: %d bytes\n"), total_bytes);
 
     /* Verify DEVCFGx values. */
     if (boot_used && !force) {
@@ -523,7 +526,7 @@ void do_program(char *filename)
     t0 = fix_time();
     if (! verify_only) {
         if (flash_used) {
-            printf(_("Program flash: "));
+            conprintf(_("Program flash: "));
             print_symbols('.', progress_len);
             print_symbols('\b', progress_len);
             fflush(stdout);
@@ -533,10 +536,10 @@ void do_program(char *filename)
                     progress(progress_step);
                 }
             }
-            printf(_("# done\n"));
+            conprintf(_("# done\n"));
         }
         if (boot_used) {
-            printf(_(" Program boot: "));
+            conprintf(_(" Program boot: "));
             print_symbols('.', boot_progress_len);
             print_symbols('\b', boot_progress_len);
             fflush(stdout);
@@ -546,7 +549,7 @@ void do_program(char *filename)
                     progress(1);
                 }
             }
-            printf(_("# done      \n"));
+            conprintf(_("# done      \n"));
             if (! boot_dirty [devcfg_offset / blocksz]) {
                 /* Write chip configuration. */
                 target_program_devcfg(target,
@@ -556,7 +559,7 @@ void do_program(char *filename)
         }
     }
     if (flash_used && !skip_verify) {
-        printf(_(" Verify flash: "));
+        conprintf(_(" Verify flash: "));
         print_symbols('.', progress_len);
         print_symbols('\b', progress_len);
         fflush(stdout);
@@ -567,10 +570,10 @@ void do_program(char *filename)
                     exit(0);
             }
         }
-        printf(_(" done\n"));
+        conprintf(_(" done\n"));
     }
     if (boot_used && !skip_verify) {
-        printf(_("  Verify boot: "));
+        conprintf(_("  Verify boot: "));
         print_symbols('.', boot_progress_len);
         print_symbols('\b', boot_progress_len);
         fflush(stdout);
@@ -581,10 +584,10 @@ void do_program(char *filename)
                     exit(0);
             }
         }
-        printf(_(" done       \n"));
+        conprintf(_(" done       \n"));
     }
     if (boot_used || flash_used)
-        printf(_(" Program rate: %ld bytes per second\n"),
+        conprintf(_(" Program rate: %ld bytes per second\n"),
             total_bytes * 1000L / mseconds_elapsed(t0));
 }
 
@@ -599,7 +602,7 @@ void do_read(char *filename, unsigned base, unsigned nbytes)
         perror(filename);
         exit(1);
     }
-    printf(_("       Memory: total %d bytes\n"), nbytes);
+    conprintf(_("       Memory: total %d bytes\n"), nbytes);
 
     /* Use 1kbyte blocks. */
     blocksz = 1024;
@@ -623,7 +626,7 @@ void do_read(char *filename, unsigned base, unsigned nbytes)
         if (len < 64)
             break;
     }
-    printf("         Read: " );
+    conprintf("         Read: " );
     print_symbols('.', len);
     print_symbols('\b', len);
     fflush(stdout);
@@ -638,8 +641,8 @@ void do_read(char *filename, unsigned base, unsigned nbytes)
             exit(1);
         }
     }
-    printf(_("# done\n"));
-    printf(_("         Rate: %ld bytes per second\n"),
+    conprintf(_("# done\n"));
+    conprintf(_("         Rate: %ld bytes per second\n"),
         nbytes * 1000L / mseconds_elapsed(t0));
     fclose(fd);
 }
@@ -719,7 +722,6 @@ int main(int argc, char **argv)
 
     setvbuf(stdout, (char *)NULL, _IOLBF, 0);
     setvbuf(stderr, (char *)NULL, _IOLBF, 0);
-    printf(_("Programmer for Microchip PIC32 microcontrollers, Version %s\n"), GITVERSION);
     progname = argv[0];
     copyright = _("    Copyright: (C) 2011-2015 Serge Vakulenko");
     signal(SIGINT, interrupted);
@@ -728,9 +730,12 @@ int main(int argc, char **argv)
 #endif
     signal(SIGTERM, interrupted);
 
-    while ((ch = getopt_long(argc, argv, "fvDhrpeCVWSd:b:B:R:",
+    while ((ch = getopt_long(argc, argv, "qfvDhrpeCVWSd:b:B:R:",
       long_options, 0)) != -1) {
         switch (ch) {
+        case 'q':
+            ++quiet;
+            continue;
         case 'f':
             ++force;
             continue;
@@ -767,7 +772,7 @@ int main(int argc, char **argv)
         case 'B':
             alternate_speed = strtoul(optarg, 0, 0);
             if (! serial_speed_valid(alternate_speed)) {
-                printf("Debug: %d\n", alternate_speed);
+                conprintf("Debug: %d\n", alternate_speed);
                 return 0;
             }
             continue;
@@ -807,6 +812,7 @@ usage:
         printf("       file.srec           Code file in SREC format\n");
         printf("       file.hex            Code file in Intel HEX format\n");
         printf("       file.bin            Code file in binary format\n");
+        printf("       -q                  Reduce output noise\n");
         printf("       -f                  Force program (bypass DEVCFG check)\n");
         printf("       -v                  Verify only\n");
         printf("       -r                  Read mode\n");
@@ -853,10 +859,11 @@ usage:
         printf("\n");
         return 0;
     }
-    printf("%s\n", copyright);
+    conprintf("%s\n", copyright);
     argc -= optind;
     argv += optind;
 
+    conprintf(_("Programmer for Microchip PIC32 microcontrollers, Version %s\n"), GITVERSION);
     memset(boot_data, ~0, BOOT_BYTES);
     memset(flash_data, ~0, FLASH_BYTES);
 

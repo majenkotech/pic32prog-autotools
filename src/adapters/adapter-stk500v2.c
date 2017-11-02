@@ -15,6 +15,7 @@
 #include "adapter.h"
 #include "pic32.h"
 #include "serial.h"
+#include "console.h"
 
 /*
  * AVR068 - STK500 Communication Protocol
@@ -95,11 +96,11 @@ again:
      * Send command.
      */
     if (debug_level > 1) {
-        printf("send [%d] %x-%x-%x-%x-%x",
+        conprintf("send [%d] %x-%x-%x-%x-%x",
             5 + cmdlen + 1, hdr[0], hdr[1], hdr[2], hdr[3], hdr[4]);
         for (i=0; i<cmdlen; ++i)
-            printf("-%x", cmd[i]);
-        printf("-%x\n", sum);
+            conprintf("-%x", cmd[i]);
+        conprintf("-%x\n", sum);
     }
 
     if (serial_write(hdr, 5) < 0 ||
@@ -128,7 +129,7 @@ again:
         unsigned char buf [300];
 
         if (retry)
-            printf("got invalid header: %x-%x-%x-%x-%x\n",
+            conprintf("got invalid header: %x-%x-%x-%x-%x\n",
                 hdr[0], hdr[1], hdr[2], hdr[3], hdr[4]);
 flush_input:
         serial_read(buf, sizeof(buf), a->timeout_msec);
@@ -140,7 +141,7 @@ flush_input:
     }
     rlen = hdr[2] << 8 | hdr[3];
     if (rlen == 0 || rlen > reply_len) {
-        printf("invalid reply length=%d, expecting %d bytes\n",
+        conprintf("invalid reply length=%d, expecting %d bytes\n",
             rlen, reply_len);
         goto flush_input;
     }
@@ -172,11 +173,11 @@ flush_input:
     }
 
     if (debug_level > 1) {
-        printf(" got [%d] %x-%x-%x-%x-%x",
+        conprintf(" got [%d] %x-%x-%x-%x-%x",
             5 + rlen + 1, hdr[0], hdr[1], hdr[2], hdr[3], hdr[4]);
         for (i=0; i<rlen; ++i)
-            printf("-%x", response[i]);
-        printf("-%x\n", sum);
+            conprintf("-%x", response[i]);
+        conprintf("-%x\n", sum);
     }
 
     /* Check sum. */
@@ -184,7 +185,7 @@ flush_input:
     for (i=0; i<rlen; ++i)
         sum ^= response[i];
     if (sum != 0) {
-        printf("invalid reply checksum\n");
+        conprintf("invalid reply checksum\n");
         goto flush_input;
     }
     return 1;
@@ -210,9 +211,9 @@ static void switch_baud(stk_adapter_t *a)
             response[5] == cmd[4])
         {
             serial_baud(alternate_speed);
-            printf("    Baud rate: %d bps\n", alternate_speed);
+            conprintf("    Baud rate: %d bps\n", alternate_speed);
         } else {
-            printf("    Baud rate: %d bps\n", a->baud);
+            conprintf("    Baud rate: %d bps\n", a->baud);
         }
     }
 }
@@ -222,14 +223,14 @@ static unsigned char get_parameter(stk_adapter_t *a, unsigned char param) {
     unsigned char response [3];
 
     if (debug_level > 1)
-        printf("Get parameter %x\n", param);
+        conprintf("Get parameter %x\n", param);
 
     if (! send_receive(a, cmd, 2, response, 3) || response[0] != cmd[0] || response[1] != STATUS_CMD_OK) {
         fprintf(stderr, "Error fetching parameter %d\n", param);
         exit(-1);
     }
     if (debug_level > 1)
-        printf("Value %x\n", response[2]);
+        conprintf("Value %x\n", response[2]);
     return response[2];
 }
 
@@ -238,7 +239,7 @@ static void set_parameter(stk_adapter_t *a, unsigned char param, int val) {
     unsigned char response [2];
 
     if (debug_level > 1)
-        printf("Set parameter %x\n", param);
+        conprintf("Set parameter %x\n", param);
 
     if (! send_receive(a, cmd, 3, response, 2) || response[0] != cmd[0] || response[1] != STATUS_CMD_OK) {
         fprintf(stderr, "Error setting parameter %d\n", param);
@@ -302,10 +303,10 @@ static void load_address(stk_adapter_t *a, unsigned addr)
     // Convert an absolute address into a flash relative address
     if (addr >= (0x1D000000 >> 1)) {
         if (debug_level > 2)
-            printf("Adjusting address 0x%08x to ", addr << 1);
+            conprintf("Adjusting address 0x%08x to ", addr << 1);
         addr -= (0x1D000000 >> 1);
         if (debug_level > 2)
-            printf("0x%08x\n", addr << 1);
+            conprintf("0x%08x\n", addr << 1);
     }
 
     unsigned char cmd [5] = { CMD_LOAD_ADDRESS,
@@ -316,7 +317,7 @@ static void load_address(stk_adapter_t *a, unsigned addr)
         return;
 
     if (debug_level > 1)
-        printf("Load address: %#x\n", addr << 1); // & 0x7f0000);
+        conprintf("Load address: %#x\n", addr << 1); // & 0x7f0000);
 
     if (! send_receive(a, cmd, 5, response, 2) || response[0] != cmd[0] ||
         response[1] != STATUS_CMD_OK) {
@@ -352,7 +353,7 @@ static void flush_write_buffer(stk_adapter_t *a)
     }
 
     if (debug_level > 1)
-        printf("Programming page: %#x\n", a->page_addr);
+        conprintf("Programming page: %#x\n", a->page_addr);
     memcpy(cmd+10, a->page, PAGE_NBYTES);
     if (! send_receive(a, cmd, 10+PAGE_NBYTES, response, 2) ||
         response[0] != cmd[0]) {
@@ -360,7 +361,7 @@ static void flush_write_buffer(stk_adapter_t *a)
         exit(-1);
     }
     if (response[1] != STATUS_CMD_OK)
-        printf("Programming flash: timeout at %#x\n", a->page_addr);
+        conprintf("Programming flash: timeout at %#x\n", a->page_addr);
 
     a->page_addr_fetched = 0;
     a->last_load_addr += PAGE_NBYTES / 2;
@@ -374,7 +375,7 @@ static void flush_write_buffer(stk_adapter_t *a)
 static void write_byte(stk_adapter_t *a, unsigned addr, unsigned char byte)
 {
     if (debug_level > 2)
-        printf("Loading to address: %#x (page_addr_fetched=%s)\n",
+        conprintf("Loading to address: %#x (page_addr_fetched=%s)\n",
             addr, a->page_addr_fetched ? "Yes" : "No");
 
     if (a->page_addr / PAGE_NBYTES != addr / PAGE_NBYTES)
@@ -401,7 +402,7 @@ static void read_page(stk_adapter_t *a, unsigned addr,
 
     load_address(a, addr >> 1);
     if (debug_level > 1)
-        printf("Read page: %#x\n", addr);
+        conprintf("Read page: %#x\n", addr);
 
     if (! send_receive(a, cmd, 4, response, 3+READ_NBYTES) ||
         response[0] != cmd[0] ||
@@ -453,7 +454,7 @@ static unsigned stk_get_idcode(adapter_t *adapter)
     if (i == 0) {
         /* Bootloader does not allow to get cpu ID code. */
         if (debug_level > 1)
-            printf("Cannot get the DEVID for the target\n");
+            conprintf("Cannot get the DEVID for the target\n");
         return 0xDEAFB00B;
     }
     return i;
@@ -465,21 +466,21 @@ static unsigned stk_get_idcode(adapter_t *adapter)
 static unsigned stk_read_word(adapter_t *adapter, unsigned addr)
 {
     if (debug_level > 1)
-        printf("Reading word from %x\n", addr);
+        conprintf("Reading word from %x\n", addr);
     stk_adapter_t *a = (stk_adapter_t*) adapter;
     unsigned char cmd [4] = { CMD_READ_FLASH_ISP, 0, 4, 0x20 };
     unsigned char response [7];
 
     load_address(a, addr >> 1);
     if (debug_level > 1)
-        printf("Sending read request\n");
+        conprintf("Sending read request\n");
     if (! send_receive(a, cmd, 4, response, 7) || response[0] != cmd[0] ||
         response[1] != STATUS_CMD_OK || response[6] != STATUS_CMD_OK) {
         fprintf(stderr, "Read word failed.\n");
         exit(-1);
     }
     if (debug_level > 1)
-        printf("Read request done\n");
+        conprintf("Read request done\n");
     return response[2] | response[3] << 8 |
         response[4] << 16 | response[5] << 24;
 }
@@ -525,7 +526,7 @@ static void stk_verify_data(adapter_t *adapter,
         expected = data [i];
         word = block [i];
         if (word != expected) {
-            printf("\nerror at address %08X: file=%08X, mem=%08X\n",
+            conprintf("\nerror at address %08X: file=%08X, mem=%08X\n",
                 addr + i*4, expected, word);
             exit(1);
         }
@@ -585,12 +586,12 @@ adapter_t *adapter_open_stk500v2(const char *port, int baud_rate)
             ||
             (memcmp(response, "\1\0\10AVRISP_2", 11) == 0))) {
             if (debug_level > 1)
-                printf("stk-probe: OK\n");
+                conprintf("stk-probe: OK\n");
             break;
         }
         ++retry_count;
         if (debug_level > 1) {
-            printf("stk-probe: retry %d: "
+            conprintf("stk-probe: retry %d: "
                 "%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x\n",
                 retry_count, response[0], response[1], response[2],
                 response[3], response[4], response[5], response[6],
@@ -617,7 +618,7 @@ adapter_t *adapter_open_stk500v2(const char *port, int baud_rate)
     a->last_load_addr = -1;
 
     /* Identify device. */
-    printf("      Adapter: STK500v2 Bootloader\n");
+    conprintf("      Adapter: STK500v2 Bootloader\n");
 
     a->adapter.user_start = 0x1d000000;
     a->adapter.user_nbytes = 2048 * 1024;
@@ -625,7 +626,7 @@ adapter_t *adapter_open_stk500v2(const char *port, int baud_rate)
     a->adapter.block_override = 1024;
     a->adapter.flags = (AD_PROBE | AD_ERASE | AD_READ | AD_WRITE);
 
-    printf(" Program area: %08x-%08x\n", a->adapter.user_start,
+    conprintf(" Program area: %08x-%08x\n", a->adapter.user_start,
         a->adapter.user_start + a->adapter.user_nbytes - 1);
 
     /* User functions. */

@@ -18,6 +18,7 @@
 #include "adapter.h"
 #include "pic32.h"
 #include "serial.h"
+#include "console.h"
 
 typedef struct {
     adapter_t adapter;              /* Common part */
@@ -299,7 +300,7 @@ static void bitbang_send(bitbang_adapter_t *a,
         unsigned L3 = (Xtdi >> 32) & 0xFFFF;
         unsigned L2 = (Xtdi >> 16) & 0xFFFF;
         unsigned L1 = Xtdi & 0xFFFF;
-        printf("n=%i, <%s> read=%i TDI: %04x %04x %04x %04x\n",
+        conprintf("n=%i, <%s> read=%i TDI: %04x %04x %04x %04x\n",
                 index, buffer, read_flag, L4,  L3,  L2,  L1);
     }
 
@@ -364,7 +365,7 @@ static unsigned long long bitbang_recv(bitbang_adapter_t *a)
         unsigned L3 = (word >> 32) & 0xFFFF;
         unsigned L2 = (word >> 16) & 0xFFFF;
         unsigned L1 = word & 0xFFFF;
-        printf("TDO = %04x %04x %04x %04x (%i bits) <%s>\n",
+        conprintf("TDO = %04x %04x %04x %04x (%i bits) <%s>\n",
                        L4,  L3,  L2,  L1, a->BitsToRead, buffer);
     }
 
@@ -424,22 +425,22 @@ static void bitbang_close(adapter_t *adapter, int power_on)
     bitbang_ICSP_enable(a, 0);
     gettimeofday(&a->T2, 0);
 
-    printf("\n");
-    printf("total TDI/TMS pairs sent = %i pairs\n", a->TotalBitPairsSent);
-    printf("total TDO bits received  = %i bits\n",  a->TotalBitsReceived);
+    conprintf("\n");
+    conprintf("total TDI/TMS pairs sent = %i pairs\n", a->TotalBitPairsSent);
+    conprintf("total TDO bits received  = %i bits\n",  a->TotalBitsReceived);
 
-    printf("total ascii codes sent   = %i\n", a->TotalCodeChrsSent);
-    printf("total ascii codes recv   = %i\n", a->TotalCodeChrsRecv);
-    printf("maximum continuous write = %i chars\n", a->MaxBufferedWrites);
+    conprintf("total ascii codes sent   = %i\n", a->TotalCodeChrsSent);
+    conprintf("total ascii codes recv   = %i\n", a->TotalCodeChrsRecv);
+    conprintf("maximum continuous write = %i chars\n", a->MaxBufferedWrites);
 
-    printf("O/S serial writes        = %i\n", a->WriteCount);
-    printf("O/S serial reads (data)  = %i\n", a->Read1Count);
-    printf("O/S serial reads (sync)  = %i\n", a->Read2Count);
-    printf("XferFastData count       = %i\n", a->FDataCount);
-    printf("10mS delays (E/X/R)      = %i/%i/%i\n", a->DelayCount[0],
+    conprintf("O/S serial writes        = %i\n", a->WriteCount);
+    conprintf("O/S serial reads (data)  = %i\n", a->Read1Count);
+    conprintf("O/S serial reads (sync)  = %i\n", a->Read2Count);
+    conprintf("XferFastData count       = %i\n", a->FDataCount);
+    conprintf("10mS delays (E/X/R)      = %i/%i/%i\n", a->DelayCount[0],
                                                     a->DelayCount[1],
                                                     a->DelayCount[2]);
-    printf("elapsed programming time = %lum %02lus\n", (a->T2.tv_sec - a->T1.tv_sec) / 60,
+    conprintf("elapsed programming time = %lum %02lus\n", (a->T2.tv_sec - a->T1.tv_sec) / 60,
                                                        (a->T2.tv_sec - a->T1.tv_sec) % 60);
 
     serial_close();                    // at this point we are exiting application???
@@ -534,7 +535,7 @@ static void xfer_fastdata(bitbang_adapter_t *a, unsigned word)
         bitbang_send(a, 0, 0, 33, (unsigned long long) word << 1, 2);
         unsigned status = bitbang_recv(a);
         if (! (status & 1)) {
-            printf("!");
+            conprintf("!");
             fflush(stdout);
         }
     }
@@ -726,7 +727,7 @@ static void bitbang_load_executive(adapter_t *adapter,
     a->use_executive = 1;
     serial_execution(a);
 
-    printf("   Loading PE: ");
+    conprintf("   Loading PE: ");
     fflush(stdout);
 
     if (memcmp(a->adapter.family_name, "mz", 2) != 0) {            // steps 1. to 3. not needed for MZ
@@ -736,27 +737,27 @@ static void bitbang_load_executive(adapter_t *adapter,
         xfer_instruction(a, 0x3c05001f);   // lui a1, 0x1f
         xfer_instruction(a, 0x34a50040);   // ori a1, 0x40   - a1 has 001f0040
         xfer_instruction(a, 0xac850000);   // sw  a1, 0(a0)  - BMXCON initialized
-        printf("1");
+        conprintf("1");
         fflush(stdout);
 
         /* Step 2. */
         xfer_instruction(a, 0x34050800);   // li  a1, 0x800  - a1 has 00000800
         xfer_instruction(a, 0xac850010);   // sw  a1, 16(a0) - BMXDKPBA initialized
-        printf(" 2");
+        conprintf(" 2");
         fflush(stdout);
 
         /* Step 3. */
         xfer_instruction(a, 0x8c850040);   // lw  a1, 64(a0) - load BMXDMSZ
         xfer_instruction(a, 0xac850020);   // sw  a1, 32(a0) - BMXDUDBA initialized
         xfer_instruction(a, 0xac850030);   // sw  a1, 48(a0) - BMXDUPBA initialized
-        printf(" 3");
+        conprintf(" 3");
         fflush(stdout);
     }
 
     /* Step 4. */
     xfer_instruction(a, 0x3c04a000);   // lui a0, 0xa000
     xfer_instruction(a, 0x34840800);   // ori a0, 0x800  - a0 has a0000800
-    printf(" 4 (LDR)");
+    conprintf(" 4 (LDR)");
     fflush(stdout);
 
     /* Download the PE loader. */
@@ -771,7 +772,7 @@ static void bitbang_load_executive(adapter_t *adapter,
         xfer_instruction(a, 0xac860000);   // sw  a2, 0(a0)
         xfer_instruction(a, 0x24840004);   // addiu a0, 4
     }
-    printf(" 5");
+    conprintf(" 5");
     fflush(stdout);
 
     /* Jump to PE loader (step 6). */
@@ -779,7 +780,7 @@ static void bitbang_load_executive(adapter_t *adapter,
     xfer_instruction(a, 0x37390800);   // ori t9, 0x800  - t9 has a0000800
     xfer_instruction(a, 0x03200008);   // jr  t9
     xfer_instruction(a, 0x00000000);   // nop
-    printf(" 6");
+    conprintf(" 6");
     fflush(stdout);
 
     /* Switch from serial to fast execution mode. */
@@ -796,7 +797,7 @@ static void bitbang_load_executive(adapter_t *adapter,
     bitbang_send(a, 1, 1, 5, ETAP_FASTDATA, 0);  /* Send command. */
     xfer_fastdata(a, 0xa0000900);
     xfer_fastdata(a, nwords);
-    printf(" 7a (PE)");
+    conprintf(" 7a (PE)");
     fflush(stdout);
 
     /* Download the PE itself (step 7-B). */
@@ -804,14 +805,14 @@ static void bitbang_load_executive(adapter_t *adapter,
         xfer_fastdata(a, *pe++);
     }
     bitbang_delay10mS(a, 3);
-    printf(" 7b");
+    conprintf(" 7b");
     fflush(stdout);
 
     /* Download the PE instructions. */
     xfer_fastdata(a, 0);                       /* Step 8 - jump to PE. */
     xfer_fastdata(a, 0xDEAD0000);
     bitbang_delay10mS(a, 3);
-    printf(" 8");
+    conprintf(" 8");
     fflush(stdout);
 
     xfer_fastdata(a, PE_EXEC_VERSION << 16);
@@ -823,7 +824,7 @@ static void bitbang_load_executive(adapter_t *adapter,
         exit(-1);
     }
 
-    printf(" v%04x\n", version & 0xFFFF);
+    conprintf(" v%04x\n", version & 0xFFFF);
 
     if (debug_level > 0)
         fprintf(stderr, "PE version = %04x\n", version & 0xffff);
@@ -860,7 +861,7 @@ static void bitbang_erase_chip(adapter_t *adapter)
         fprintf(stderr, "invalid status = %04x (in erase chip)\n", status);
         exit(-1);
     }
-    printf("(%imS) ", i * 10);
+    conprintf("(%imS) ", i * 10);
     fflush(stdout);
 }
 
@@ -889,7 +890,7 @@ static void bitbang_program_word(adapter_t *adapter,
     }
 
     if (memcmp(a->adapter.family_name, "mz", 2) == 0) {
-        printf("!ECC!");                        // warn if word-write to MZ processor
+        conprintf("!ECC!");                        // warn if word-write to MZ processor
         fflush(stdout);
     }
 
@@ -1004,7 +1005,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
 {
     bitbang_adapter_t *a;
 
-    printf("       (ascii ICSP coded by Robert Rozee)\n\n");
+    conprintf("       (ascii ICSP coded by Robert Rozee)\n\n");
 
 //
 // the following block of code is used to upload firmware to
@@ -1040,7 +1041,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
             serial_close();
             exit(-1);
         }
-        printf("%i baud ", bps[baud_rate]);
+        conprintf("%i baud ", bps[baud_rate]);
         fflush(stdout);
 
         for (i = 0; i < 40; i++) {
@@ -1049,7 +1050,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
             buffer[1] = CRC_EOP;
 
             serial_write(buffer, 2);
-            printf(".");
+            conprintf(".");
             fflush(stdout);
             n = serial_read(buffer, 2, 100);
             if ((n == 2) && (buffer[0] == STK_INSYNC) && (buffer[1] == STK_OK))
@@ -1061,7 +1062,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
             serial_close();
             exit(-1);
         }
-        printf(" synchronized\n");
+        conprintf(" synchronized\n");
 
         buffer[0] = STK_ENTER_PROGMODE;                 // enter program mode (not needed)
         buffer[1] = CRC_EOP;
@@ -1085,15 +1086,15 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
             exit(-1);
         }
         unsigned ID = (buffer[1] << 16) + (buffer[2] << 8) + buffer[3];
-        printf("Signature = %06x   Device = %s\n", ID, ID == 0x1e950f ? "ATmega328P" : "(wrong uP)");
+        conprintf("Signature = %06x   Device = %s\n", ID, ID == 0x1e950f ? "ATmega328P" : "(wrong uP)");
 
         for (i = 0; i < sizeof(ICSP); i += 0x80)
-            printf(".");
+            conprintf(".");
         for (i = 0; i < sizeof(ICSP); i += 0x80)
-            printf("\b");
+            conprintf("\b");
 
         for (i = 0; i < sizeof(ICSP); i += 0x80) {
-            printf("#");
+            conprintf("#");
             fflush(stdout);
 
             buffer[0] = STK_LOAD_ADDRESS;               // load address
@@ -1124,7 +1125,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
                 exit(-1);
             }
         }
-        printf("\n");
+        conprintf("\n");
 
         buffer[0] = STK_LEAVE_PROGMODE;                 // leave program mode
         buffer[1] = CRC_EOP;
@@ -1136,10 +1137,10 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
             serial_close();
             exit(-1);
         }
-        printf("Firmware uploaded to 'ascii ICSP' adapter OK\n");
+        conprintf("Firmware uploaded to 'ascii ICSP' adapter OK\n");
         serial_close();
 #else
-        printf("Firmware upload to arduino/STK500 not included\n");
+        conprintf("Firmware upload to arduino/STK500 not included\n");
 #endif
         exit(0);                                       // finished performing function, exit program
     }
@@ -1167,7 +1168,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
     //
     // Serial port now open and configured.
     //
-    printf("      Adapter: ");
+    conprintf("      Adapter: ");
     fflush(stdout);
 
     int i, n;
@@ -1178,8 +1179,8 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
         ch = (i < 20 ? '.': ':');
         if (i == 20)
             for (n = 0; n < 20; n++ )
-                printf("\b");
-        printf("%c", ch);
+                conprintf("\b");
+        conprintf("%c", ch);
         fflush(stdout);
         n = serial_read(&ch, 1, 250);
         if (n == 1 && ch == '<')
@@ -1192,7 +1193,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
         free(a);
         return 0;
     }
-    printf(" OK1");
+    conprintf(" OK1");
     fflush(stdout);
 
     ch = '?';
@@ -1202,7 +1203,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
     n = serial_read(buffer, 14, 250);
 
     if (n == 14 && memcmp(buffer, "ascii ICSP v1", 13) == 0)
-        printf(" OK2 - %s\n", buffer);
+        conprintf(" OK2 - %s\n", buffer);
     else {
         fprintf(stderr, "\nBad response from 'ascii ICSP' adapter\n");
         serial_close();
@@ -1250,7 +1251,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
     //
 
     if ((baud_rate >> 1) == 4) {                        // 8 (MX) or 9 (MZ)
-        printf("\nAttempting blind erase of %s processor\n",
+        conprintf("\nAttempting blind erase of %s processor\n",
             (baud_rate & 1) ? "MZ" : "MX");
         bitbang_send(a, 6, 31, 0, 0, 0);                // don't care about ID
         bitbang_send(a, 1, 1, 5, TAP_SW_MTAP, 0);       /* Send command. */
