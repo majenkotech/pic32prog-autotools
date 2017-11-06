@@ -2,6 +2,7 @@
  * Interface to PIC32 bootloader with serial STK500v2 protocol.
  *
  * Copyright (C) 2014-2015 Serge Vakulenko
+ * Copyright (C) 2015-2017 Majenko Technologies
  *
  * This file is part of PIC32PROG project, which is distributed
  * under the terms of the GNU General Public License (GPL).

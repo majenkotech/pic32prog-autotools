@@ -3,6 +3,7 @@
 /*
  * Interface to PIC32 ICSP port using bitbang adapter.
  * Copyright (C) 2014 Serge Vakulenko
+ * Copyright (C) 2015-2017 Majenko Technologies
  *
  * Additions for talking to ascii ICSP programmer Copyright (C) 2015 Robert Rozee
  *

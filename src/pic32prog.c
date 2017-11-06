@@ -2,6 +2,7 @@
  * Flash memory programmer for Microchip PIC32 microcontrollers.
  *
  * Copyright (C) 2011-2014 Serge Vakulenko
+ * Copyright (C) 2015-2017 Majenko Technologies
  *
  * This file is part of PIC32PROG project, which is distributed
  * under the terms of the GNU General Public License (GPL).
@@ -723,7 +724,7 @@ int main(int argc, char **argv)
     setvbuf(stdout, (char *)NULL, _IOLBF, 0);
     setvbuf(stderr, (char *)NULL, _IOLBF, 0);
     progname = argv[0];
-    copyright = _("    Copyright: (C) 2011-2015 Serge Vakulenko");
+    copyright = _("    Copyright: (C) 2011-2015 Serge Vakulenko\n                   2016-2017 Majenko Technologies");
     signal(SIGINT, interrupted);
 #ifdef __linux__
     signal(SIGHUP, interrupted);
