@@ -10,6 +10,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
@@ -140,7 +141,7 @@ void store_data(unsigned address, unsigned byte)
 /*
  * Read the S record file.
  */
-int read_srec(char *filename)
+int read_srec(char *filename, uint32_t *topaddr)
 {
     FILE *fd;
     unsigned char buf [256];
@@ -201,13 +202,14 @@ int read_srec(char *filename)
         }
     }
     fclose(fd);
+    *topaddr = address;
     return 1;
 }
 
 /*
  * Read HEX file.
  */
-int read_hex(char *filename)
+int read_hex(char *filename, uint32_t *topaddr)
 {
     FILE *fd;
     unsigned char buf [256], data[16], record_type, sum;
@@ -283,6 +285,7 @@ int read_hex(char *filename)
         }
     }
     fclose(fd);
+    *topaddr = address;
     return 1;
 }
 
@@ -323,13 +326,15 @@ void interrupted(int signum)
  */
 static int is_flash_block_dirty(unsigned offset)
 {
-    int i;
+    // All blocks will always be dirty (stk500v2 block not erasing bug)
+    return 1;
+//    int i;
 
-    for (i=0; i<blocksz; i++, offset++) {
-        if (flash_data [offset] != 0xff)
-            return 1;
-    }
-    return 0;
+//    for (i=0; i<blocksz; i++, offset++) {
+//        if (flash_data [offset] != 0xff)
+//            return 1;
+//    }
+//    return 0;
 }
 
 /*
@@ -437,8 +442,10 @@ void do_erase()
     target_erase(target);
 }
 
-void do_program(char *filename)
+void do_program(char *filename, uint32_t maxaddr)
 {
+
+    maxaddr &= 0x00FFFFFF;
     unsigned addr;
     int progress_len, progress_step, boot_progress_len;
     void *t0;
@@ -491,7 +498,7 @@ void do_program(char *filename)
 
     /* Compute dirty bits for every block. */
     if (flash_used) {
-        for (addr=0; addr<flash_bytes; addr+=blocksz) {
+        for (addr=0; addr<maxaddr; addr+=blocksz) {
             flash_dirty [addr / blocksz] = is_flash_block_dirty(addr);
         }
     }
@@ -876,14 +883,18 @@ usage:
             do_probe();
         }
         break;
-    case 1:
-        if (! read_srec(argv[0]) &&
-            ! read_hex(argv[0])) {
+    case 1: {
+        uint32_t hex_top = 0;
+        int read_ok = read_hex(argv[0], &hex_top);
+        if (!read_ok) {
+            read_ok = read_srec(argv[0], &hex_top);
+        }
+        if (!read_ok) {
             fprintf(stderr, _("%s: bad file format\n"), argv[0]);
             exit(1);
         }
-        do_program(argv[0]);
-        break;
+        do_program(argv[0], hex_top);
+        } break;
     case 3:
         if (! read_mode)
             goto usage;
