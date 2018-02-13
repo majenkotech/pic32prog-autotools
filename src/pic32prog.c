@@ -216,6 +216,8 @@ int read_hex(char *filename, uint32_t *topaddr)
     unsigned address, high;
     int bytes, i;
 
+    *topaddr = 0;
+
     fd = fopen(filename, "r");
     if (! fd) {
         perror(filename);
@@ -283,9 +285,10 @@ int read_hex(char *filename, uint32_t *topaddr)
         for (i=0; i<bytes; i++) {
             store_data(address++, data [i]);
         }
+
+        if (address > *topaddr) *topaddr = address;
     }
     fclose(fd);
-    *topaddr = address;
     return 1;
 }
 
@@ -444,7 +447,6 @@ void do_erase()
 
 void do_program(char *filename, uint32_t maxaddr)
 {
-
     maxaddr &= 0x00FFFFFF;
     unsigned addr;
     int progress_len, progress_step, boot_progress_len;

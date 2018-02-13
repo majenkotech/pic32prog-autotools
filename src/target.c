@@ -275,6 +275,8 @@ static variant_t pic32_tab[TABSZ] = {
     {0x7227053, "MZ2048EFH144", 2048,   &family_mz},
     {0x724F053, "MZ2048EFM144", 2048,   &family_mz},
 
+    {0x5f69053, "MZ2064DAA288", 2048,   &family_mz},
+
     /* USB bootloader */
     {0xEAFB00B, "Bootloader",   0,      &family_bl},
     {0}
