@@ -31,6 +31,8 @@
 #define CMD_JUMP_APP        0x05
 #define CMD_GET_DEVID       0x06
 
+int enableChipLookup = 0;
+
 typedef struct {
     /* Common part */
     adapter_t adapter;
@@ -91,7 +93,9 @@ static void an1388_send(hid_device *hiddev, unsigned char *buf, unsigned nbytes)
         hid_write(hiddev, b, wr);
         b += wr;
         towrite -= wr;
+        if (debug_level > 0) fprintf(stderr, "Written %d byte HID packet\n", wr);
     }
+    if (debug_level > 0) fprintf(stderr, "All HID data send");
         
 }
 
@@ -105,6 +109,7 @@ static int an1388_recv(hid_device *hiddev, unsigned char *buf)
     while (n == 0 && q < 10) {
         n = hid_read(hiddev, buf, 64);
         q++;
+        if (debug_level > 0) fprintf(stderr, "Read try %d: hid_read returned %d\n", n, q);
     }
 
     if (n < 0) {
@@ -229,6 +234,10 @@ static void an1388_close(adapter_t *adapter, int power_on)
  */
 static unsigned an1388_get_idcode(adapter_t *adapter)
 {
+    if (enableChipLookup == 0) {
+        return 0xDEAFB00B;
+    }
+
     an1388_adapter_t *a = (an1388_adapter_t*) adapter;
 
     an1388_command(a, CMD_GET_DEVID, 0, 0);
@@ -428,6 +437,12 @@ adapter_t *adapter_open_an1388(int vid, int pid, const char *serial, int report)
     an1388_command(a, CMD_READ_VERSION, 0, 0);
     conprintf("      Adapter: AN1388 Bootloader Version %d.%d\n",
         a->reply[1], a->reply[2]);
+
+    if (a->reply[1] == 1 && a->reply[2] == 5) {
+        enableChipLookup = 1;
+    } else {
+        enableChipLookup = 0;
+    }
 
     a->adapter.user_start = 0x1d000000;
     a->adapter.user_nbytes = 512 * 1024;

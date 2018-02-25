@@ -103,7 +103,7 @@ unsigned mseconds_elapsed(void *arg)
     return mseconds;
 }
 
-void store_data(unsigned address, unsigned byte)
+void store_data(unsigned address, unsigned byte, unsigned blocksz)
 {
     unsigned offset;
 
@@ -112,24 +112,28 @@ void store_data(unsigned address, unsigned byte)
         offset = address - BOOTV_BASE;
         boot_data [offset] = byte;
         boot_used = 1;
+        boot_dirty [offset / blocksz] = 1;
 
     } else if (address >= BOOTP_BASE && address < BOOTP_BASE + BOOT_BYTES) {
         /* Boot code, physical. */
         offset = address - BOOTP_BASE;
         boot_data [offset] = byte;
         boot_used = 1;
+        boot_dirty [offset / blocksz] = 1;
 
     } else if (address >= FLASHV_BASE && address < FLASHV_BASE + FLASH_BYTES) {
         /* Main flash memory, virtual. */
         offset = address - FLASHV_BASE;
         flash_data [offset] = byte;
         flash_used = 1;
+        flash_dirty [offset / blocksz] = 1;
 
     } else if (address >= FLASHP_BASE && address < FLASHP_BASE + FLASH_BYTES) {
         /* Main flash memory, physical. */
         offset = address - FLASHP_BASE;
         flash_data [offset] = byte;
         flash_used = 1;
+        flash_dirty [offset / blocksz] = 1;
     } else {
         /* Ignore incorrect data. */
         //fprintf(stderr, _("%08X: address out of flash memory\n"), address);
@@ -141,13 +145,21 @@ void store_data(unsigned address, unsigned byte)
 /*
  * Read the S record file.
  */
-int read_srec(char *filename, uint32_t *topaddr)
+int read_srec(char *filename, unsigned blocksz)
 {
     FILE *fd;
     unsigned char buf [256];
     unsigned char *data;
     unsigned address;
-    int bytes;
+    int i, bytes;
+
+    for (i = 0; i < FLASH_BYTES / MINBLOCKSZ; i++) {
+        flash_dirty[i] = 0;
+    }
+
+    for (i = 0; i < BOOT_BYTES / MINBLOCKSZ; i++) {
+        boot_dirty[i] = 0;
+    }
 
     fd = fopen(filename, "r");
     if (! fd) {
@@ -195,28 +207,33 @@ int read_srec(char *filename, uint32_t *topaddr)
             bytes -= 2;
 
             while (bytes-- > 0) {
-                store_data(address++, HEX(data));
+                store_data(address++, HEX(data), blocksz);
                 data += 2;
             }
             break;
         }
     }
     fclose(fd);
-    *topaddr = address;
     return 1;
 }
 
 /*
  * Read HEX file.
  */
-int read_hex(char *filename, uint32_t *topaddr)
+int read_hex(char *filename, unsigned blocksz)
 {
     FILE *fd;
     unsigned char buf [256], data[16], record_type, sum;
     unsigned address, high;
     int bytes, i;
 
-    *topaddr = 0;
+    for (i = 0; i < FLASH_BYTES / MINBLOCKSZ; i++) {
+        flash_dirty[i] = 0;
+    }
+
+    for (i = 0; i < BOOT_BYTES / MINBLOCKSZ; i++) {
+        boot_dirty[i] = 0;
+    }
 
     fd = fopen(filename, "r");
     if (! fd) {
@@ -238,55 +255,53 @@ int read_hex(char *filename, uint32_t *topaddr)
             fprintf(stderr, _("%s: bad HEX record: %s\n"), filename, buf);
             exit(1);
         }
-	record_type = HEX(buf+7);
-	if (record_type == 1) {
-	    /* End of file. */
-            break;
+        record_type = HEX(buf+7);
+        if (record_type == 1) {
+            /* End of file. */
+                break;
+            }
+        if (record_type == 5) {
+            /* Start address, ignore. */
+            continue;
         }
-	if (record_type == 5) {
-	    /* Start address, ignore. */
-	    continue;
-	}
 
-	bytes = HEX(buf+1);
-	if (strlen((char*) buf) < bytes * 2 + 11) {
+        bytes = HEX(buf+1);
+        if (strlen((char*) buf) < bytes * 2 + 11) {
             fprintf(stderr, _("%s: too short hex line\n"), filename);
             exit(1);
         }
-	address = high << 16 | HEX(buf+3) << 8 | HEX(buf+5);
+        address = high << 16 | HEX(buf+3) << 8 | HEX(buf+5);
 
-	sum = 0;
-	for (i=0; i<bytes; ++i) {
-            data [i] = HEX(buf+9 + i + i);
-	    sum += data [i];
-	}
-	sum += record_type + bytes + (address & 0xff) + (address >> 8 & 0xff);
-	if (sum != (unsigned char) - HEX(buf+9 + bytes + bytes)) {
+        sum = 0;
+        for (i=0; i<bytes; ++i) {
+                data [i] = HEX(buf+9 + i + i);
+            sum += data [i];
+        }
+        sum += record_type + bytes + (address & 0xff) + (address >> 8 & 0xff);
+        if (sum != (unsigned char) - HEX(buf+9 + bytes + bytes)) {
             fprintf(stderr, _("%s: bad HEX checksum\n"), filename);
             exit(1);
         }
 
-	if (record_type == 4) {
-	    /* Extended address. */
-            if (bytes != 2) {
-                fprintf(stderr, _("%s: invalid HEX linear address record length\n"),
-                    filename);
+        if (record_type == 4) {
+            /* Extended address. */
+                if (bytes != 2) {
+                    fprintf(stderr, _("%s: invalid HEX linear address record length\n"),
+                        filename);
+                    exit(1);
+                }
+            high = data[0] << 8 | data[1];
+            continue;
+        }
+        if (record_type != 0) {
+                fprintf(stderr, _("%s: unknown HEX record type: %d\n"),
+                    filename, record_type);
                 exit(1);
-            }
-	    high = data[0] << 8 | data[1];
-	    continue;
-	}
-	if (record_type != 0) {
-            fprintf(stderr, _("%s: unknown HEX record type: %d\n"),
-                filename, record_type);
-            exit(1);
         }
         //printf("%08x: %u bytes\n", address, bytes);
         for (i=0; i<bytes; i++) {
-            store_data(address++, data [i]);
+            store_data(address++, data [i], blocksz);
         }
-
-        if (address > *topaddr) *topaddr = address;
     }
     fclose(fd);
     return 1;
@@ -321,41 +336,6 @@ void interrupted(int signum)
     fprintf(stderr, _("\nInterrupted.\n"));
     quit();
     _exit(-1);
-}
-
-/*
- * Check that the boot block, containing devcfg registers,
- * has some useful data.
- */
-static int is_flash_block_dirty(unsigned offset)
-{
-    // All blocks will always be dirty (stk500v2 block not erasing bug)
-    return 1;
-//    int i;
-
-//    for (i=0; i<blocksz; i++, offset++) {
-//        if (flash_data [offset] != 0xff)
-//            return 1;
-//    }
-//    return 0;
-}
-
-/*
- * Check that the boot block, containing devcfg registers,
- * has some other data.
- */
-static int is_boot_block_dirty(unsigned offset)
-{
-    int i;
-
-    for (i=0; i<blocksz; i++, offset++) {
-        /* Skip devcfg registers. */
-        if (offset >= devcfg_offset && offset < devcfg_offset+16)
-            continue;
-        if (boot_data [offset] != 0xff)
-            return 1;
-    }
-    return 0;
 }
 
 void do_probe()
@@ -445,9 +425,8 @@ void do_erase()
     target_erase(target);
 }
 
-void do_program(char *filename, uint32_t maxaddr)
+void do_program(char *filename)
 {
-    maxaddr &= 0x00FFFFFF;
     unsigned addr;
     int progress_len, progress_step, boot_progress_len;
     void *t0;
@@ -477,6 +456,19 @@ void do_program(char *filename, uint32_t maxaddr)
     conprintf(_(" Flash memory: %d kbytes\n"), flash_bytes / 1024);
     if (boot_bytes > 0)
         conprintf(_("  Boot memory: %d kbytes\n"), boot_bytes / 1024);
+
+
+
+        int read_ok = read_hex(filename, blocksz);
+        if (!read_ok) {
+            read_ok = read_srec(filename, blocksz);
+        }
+        if (!read_ok) {
+            fprintf(stderr, _("%s: bad file format\n"), filename);
+            exit(1);
+        }
+
+
     conprintf(_("         Data: %d bytes\n"), total_bytes);
 
     /* Verify DEVCFGx values. */
@@ -497,18 +489,6 @@ void do_program(char *filename, uint32_t maxaddr)
         target_erase(target);
     }
     target_use_executive(target);
-
-    /* Compute dirty bits for every block. */
-    if (flash_used) {
-        for (addr=0; addr<maxaddr; addr+=blocksz) {
-            flash_dirty [addr / blocksz] = is_flash_block_dirty(addr);
-        }
-    }
-    if (boot_used) {
-        for (addr=0; addr<boot_bytes; addr+=blocksz) {
-            boot_dirty [addr / blocksz] = is_boot_block_dirty(addr);
-        }
-    }
 
     /* Compute length of progress indicator for flash memory. */
     for (progress_step=1; ; progress_step<<=1) {
@@ -886,16 +866,7 @@ usage:
         }
         break;
     case 1: {
-        uint32_t hex_top = 0;
-        int read_ok = read_hex(argv[0], &hex_top);
-        if (!read_ok) {
-            read_ok = read_srec(argv[0], &hex_top);
-        }
-        if (!read_ok) {
-            fprintf(stderr, _("%s: bad file format\n"), argv[0]);
-            exit(1);
-        }
-        do_program(argv[0], hex_top);
+        do_program(argv[0]);
         } break;
     case 3:
         if (! read_mode)
