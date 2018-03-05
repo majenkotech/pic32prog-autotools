@@ -1,0 +1,5 @@
+git
+libusb-1.0
+autoconf
+gettext
+libudev-dev
