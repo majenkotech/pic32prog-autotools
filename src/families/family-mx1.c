@@ -336,13 +336,13 @@ void print_mx1(unsigned cfg0, unsigned cfg1, unsigned cfg2, unsigned cfg3)
         printf("              %u        Peripheral Module Disable - only 1 reconfig\n",
             MX1_CFG3_PMDL1WAY >> 28);
     else
-        printf("                       USBID pin: controlled by port\n");
+        printf("                       Peripheral Module Disable - allow multiple reconfigurations\n");
 
     if (cfg3 & MX1_CFG3_IOL1WAY)
         printf("              %u        Peripheral Pin Select - only 1 reconfig\n",
             MX1_CFG3_IOL1WAY >> 28);
     else
-        printf("                       USBID pin: controlled by port\n");
+        printf("                       Peripheral Pin Select - allow multiple reconfigurations\n");
 
     if (cfg3 & MX1_CFG3_FUSBIDIO)
         printf("              %u        USBID pin: controlled by USB\n",

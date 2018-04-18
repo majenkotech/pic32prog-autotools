@@ -38,6 +38,9 @@ static const
 family_t family_mx1 = { "mx1",
                         3,  0x0bf0, 128,  print_mx1, pic32_pemx1, 422,  0x0301 };
 static const
+family_t family_xlp = { "xlp",
+                        12, 0x2ff0, 512,  print_mx1, pic32_pemx3, 1044, 0x0201 };
+static const
 family_t family_mx3 = { "mx3",
                         12, 0x2ff0, 512,  print_mx3, pic32_pemx3, 1044, 0x0201 };
 static const
@@ -108,6 +111,24 @@ static variant_t pic32_tab[TABSZ] = {
     {0x6A15053, "MX550F256L",    256,   &family_mx1},
     {0x6A34053, "MX570F512H",    512,   &family_mx1},
     {0x6A35053, "MX570F512L",    512,   &family_mx1},
+
+    /* XLP Family---------------Flash---Family */
+    {0x7800053, "MX154F128B",    128,   &family_xlp},
+    {0x7804053, "MX154F128D",    128,   &family_xlp},
+    {0x7808053, "MX155F128B",    128,   &family_xlp},
+    {0x780C053, "MX155F128D",    128,   &family_xlp},
+    {0x7801053, "MX174F256B",    256,   &family_xlp},
+    {0x7805053, "MX174F256D",    256,   &family_xlp},
+    {0x7809053, "MX175F256B",    256,   &family_xlp},
+    {0x780D053, "MX175F256D",    256,   &family_xlp},
+    {0x7802053, "MX254F128B",    128,   &family_xlp},
+    {0x7806053, "MX254F128D",    128,   &family_xlp},
+    {0x780A053, "MX255F128B",    128,   &family_xlp},
+    {0x780E053, "MX255F128D",    128,   &family_xlp},
+    {0x7803053, "MX274F256B",    256,   &family_xlp},
+    {0x7807053, "MX274F256D",    256,   &family_xlp},
+    {0x780B053, "MX275F256B",    256,   &family_xlp},
+    {0x780F053, "MX275F256D",    256,   &family_xlp},
 
     /* MX3/4/5/6/7 family-------Flash---Family */
     {0x0902053, "MX320F032H",     32,   &family_mx3},

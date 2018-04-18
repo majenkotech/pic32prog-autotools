@@ -6,4 +6,13 @@ config.guess
 config.sub
 install-sh
 missing
-
+*.o
+Makefile
+config.h
+config.h.in~
+config.log
+config.status
+src/Makefile
+src/families/.dirstamp
+src/pic32prog
+stamp-h1
