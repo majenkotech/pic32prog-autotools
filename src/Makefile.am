@@ -1,7 +1,7 @@
 bin_PROGRAMS=pic32prog
 pic32prog_LDADD=$(ADAPTER_OBJ) $(HID_OBJ) $(SER_OBJ)
 pic32prog_DEPENDENCIES=$(ADAPTER_OBJ) $(HID_OBJ) $(SER_OBJ)
-pic32prog_SOURCES=pic32prog.c configure.c executive.c target.c families/family-mz.c families/family-mx1.c families/family-mx3.c 
+pic32prog_SOURCES=pic32prog.c configure.c executive.c target.c families/family-mz.c families/family-mx1.c families/family-mx3.c families/family-xlp.c
 pic32prog_CFLAGS=-DGITCOUNT='"$(GITCOUNT)"' 
 EXTRA_pic32prog_SOURCES=hid/linux/hid.c hid/mac/hid.c hid/windows/hid.c hid/bsd/hid.c adapters/adapter-an1388.c adapters/adapter-an1388-uart.c adapters/adapter-bitbang.c adapters/adapter-hidboot.c adapters/adapter-mpsse.c adapters/adapter-pickit2.c adapters/adapter-stk500v2.c adapters/adapter-uhb.c serial.c
 

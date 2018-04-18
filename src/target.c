@@ -27,6 +27,7 @@
 extern print_func_t print_mx1;
 extern print_func_t print_mx3;
 extern print_func_t print_mz;
+extern print_func_t print_xlp;
 
 extern unsigned long open_retries;
 
@@ -39,7 +40,7 @@ family_t family_mx1 = { "mx1",
                         3,  0x0bf0, 128,  print_mx1, pic32_pemx1, 422,  0x0301 };
 static const
 family_t family_xlp = { "xlp",
-                        12, 0x2ff0, 512,  print_mx1, pic32_pemx3, 1044, 0x0201 };
+                        12, 0x2ff0, 512,  print_xlp, pic32_pemx3, 1044, 0x0201 };
 static const
 family_t family_mx3 = { "mx3",
                         12, 0x2ff0, 512,  print_mx3, pic32_pemx3, 1044, 0x0201 };

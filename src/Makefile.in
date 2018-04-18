@@ -112,7 +112,8 @@ am_pic32prog_OBJECTS = pic32prog-pic32prog.$(OBJEXT) \
 	pic32prog-target.$(OBJEXT) \
 	families/pic32prog-family-mz.$(OBJEXT) \
 	families/pic32prog-family-mx1.$(OBJEXT) \
-	families/pic32prog-family-mx3.$(OBJEXT)
+	families/pic32prog-family-mx3.$(OBJEXT) \
+	families/pic32prog-family-xlp.$(OBJEXT)
 pic32prog_OBJECTS = $(am_pic32prog_OBJECTS)
 am__DEPENDENCIES_1 =
 @BSD_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) \
@@ -301,7 +302,7 @@ top_srcdir = @top_srcdir@
 pic32prog_LDADD = $(ADAPTER_OBJ) $(HID_OBJ) $(SER_OBJ) $(am__append_1) \
 	$(am__append_2) $(am__append_4)
 pic32prog_DEPENDENCIES = $(ADAPTER_OBJ) $(HID_OBJ) $(SER_OBJ)
-pic32prog_SOURCES = pic32prog.c configure.c executive.c target.c families/family-mz.c families/family-mx1.c families/family-mx3.c 
+pic32prog_SOURCES = pic32prog.c configure.c executive.c target.c families/family-mz.c families/family-mx1.c families/family-mx3.c families/family-xlp.c
 pic32prog_CFLAGS = -DGITCOUNT='"$(GITCOUNT)"' $(am__append_3)
 EXTRA_pic32prog_SOURCES = hid/linux/hid.c hid/mac/hid.c hid/windows/hid.c hid/bsd/hid.c adapters/adapter-an1388.c adapters/adapter-an1388-uart.c adapters/adapter-bitbang.c adapters/adapter-hidboot.c adapters/adapter-mpsse.c adapters/adapter-pickit2.c adapters/adapter-stk500v2.c adapters/adapter-uhb.c serial.c
 @LINUX_TRUE@pic32prog_LDFLAGS = -Wl,-start-group $(LIBUSB_STATIC)
@@ -387,6 +388,7 @@ families/$(am__dirstamp):
 families/pic32prog-family-mz.$(OBJEXT): families/$(am__dirstamp)
 families/pic32prog-family-mx1.$(OBJEXT): families/$(am__dirstamp)
 families/pic32prog-family-mx3.$(OBJEXT): families/$(am__dirstamp)
+families/pic32prog-family-xlp.$(OBJEXT): families/$(am__dirstamp)
 hid/linux/$(am__dirstamp):
 	@$(MKDIR_P) hid/linux
 	@: > hid/linux/$(am__dirstamp)
@@ -483,6 +485,12 @@ families/pic32prog-family-mx3.o: families/family-mx3.c
 
 families/pic32prog-family-mx3.obj: families/family-mx3.c
 	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pic32prog_CFLAGS) $(CFLAGS) -c -o families/pic32prog-family-mx3.obj `if test -f 'families/family-mx3.c'; then $(CYGPATH_W) 'families/family-mx3.c'; else $(CYGPATH_W) '$(srcdir)/families/family-mx3.c'; fi`
+
+families/pic32prog-family-xlp.o: families/family-xlp.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pic32prog_CFLAGS) $(CFLAGS) -c -o families/pic32prog-family-xlp.o `test -f 'families/family-xlp.c' || echo '$(srcdir)/'`families/family-xlp.c
+
+families/pic32prog-family-xlp.obj: families/family-xlp.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pic32prog_CFLAGS) $(CFLAGS) -c -o families/pic32prog-family-xlp.obj `if test -f 'families/family-xlp.c'; then $(CYGPATH_W) 'families/family-xlp.c'; else $(CYGPATH_W) '$(srcdir)/families/family-xlp.c'; fi`
 
 hid/linux/pic32prog-hid.o: hid/linux/hid.c
 	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pic32prog_CFLAGS) $(CFLAGS) -c -o hid/linux/pic32prog-hid.o `test -f 'hid/linux/hid.c' || echo '$(srcdir)/'`hid/linux/hid.c
