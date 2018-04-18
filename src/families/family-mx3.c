@@ -382,3 +382,7 @@ void print_mx3(unsigned cfg0, unsigned cfg1, unsigned cfg2, unsigned cfg3)
     else
         printf("                       VBuson pin: controlled by port\n");
 }
+
+unsigned word_mask_mx3(unsigned address, unsigned word) {
+    return word;
+}

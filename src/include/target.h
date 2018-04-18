@@ -15,6 +15,7 @@
 #include "adapter.h"
 
 typedef void print_func_t(unsigned cfg0, unsigned cfg1, unsigned cfg2, unsigned cfg3);
+typedef unsigned word_mask_func_t(unsigned address, unsigned word);
 
 typedef struct {
     const char      *name;
@@ -22,6 +23,7 @@ typedef struct {
     unsigned        devcfg_offset;
     unsigned        bytes_per_row;
     print_func_t    *print_devcfg;
+    word_mask_func_t *word_mask;
     const unsigned  *pe_code;
     unsigned        pe_nwords;
     unsigned        pe_version;

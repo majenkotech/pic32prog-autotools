@@ -410,3 +410,11 @@ void print_xlp(unsigned cfg0, unsigned cfg1, unsigned cfg2, unsigned cfg3)
     else
         printf("                       VBuson pin: controlled by port\n");
 }
+
+unsigned word_mask_xlp(unsigned address, unsigned word) {
+    // DEVCFG0's highest bit doesn't exist.
+    if (address == 0x9FC02FFC) {
+        return word & 0x7FFFFFFF;
+    }
+    return word;
+}

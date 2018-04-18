@@ -374,3 +374,7 @@ void print_mz(unsigned cfg0, unsigned cfg1, unsigned cfg2, unsigned cfg3)
     else
         printf("                       USBID pin: controlled by port\n");
 }
+
+unsigned word_mask_mz(unsigned address, unsigned word) {
+    return word;
+}

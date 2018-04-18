@@ -29,6 +29,11 @@ extern print_func_t print_mx3;
 extern print_func_t print_mz;
 extern print_func_t print_xlp;
 
+extern word_mask_func_t word_mask_mx1;
+extern word_mask_func_t word_mask_mx3;
+extern word_mask_func_t word_mask_xlp;
+extern word_mask_func_t word_mask_mz;
+
 extern unsigned long open_retries;
 
 /*
@@ -37,16 +42,16 @@ extern unsigned long open_retries;
                     /*-Boot-Devcfg--Row---Print------Code--------Nwords-Version-*/
 static const
 family_t family_mx1 = { "mx1",
-                        3,  0x0bf0, 128,  print_mx1, pic32_pemx1, 422,  0x0301 };
+                        3,  0x0bf0, 128,  print_mx1, word_mask_mx1, pic32_pemx1, 422,  0x0301 };
 static const
 family_t family_xlp = { "xlp",
-                        12, 0x2ff0, 512,  print_xlp, pic32_pemx3, 1044, 0x0201 };
+                        12, 0x2ff0, 512,  print_xlp, word_mask_xlp, pic32_pemx3, 1044, 0x0201 };
 static const
 family_t family_mx3 = { "mx3",
-                        12, 0x2ff0, 512,  print_mx3, pic32_pemx3, 1044, 0x0201 };
+                        12, 0x2ff0, 512,  print_mx3, word_mask_mx3, pic32_pemx3, 1044, 0x0201 };
 static const
 family_t family_mz  = { "mz",
-                        80, 0xffc0, 2048, print_mz,  pic32_pemz,  1052, 0x0502 };
+                        80, 0xffc0, 2048, print_mz,  word_mask_mz,  pic32_pemz,  1052, 0x0502 };
 /*
  * This one is a special one for the bootloader. We have no idea what we're
  * programming, so set the values to the maximum out of all the others.
@@ -773,6 +778,7 @@ void target_verify_block(target_t *t, unsigned addr,
     t->adapter->read_data(t->adapter, addr, nwords, block);
     for (i=0; i<nwords; i++) {
         expected = data [i];
+        expected = t->family->word_mask(addr + (i<<2), expected);
         word = block [i];
         if (word != expected) {
             conprintf(_("\nerror at address %08X: file=%08X, mem=%08X\n"),
