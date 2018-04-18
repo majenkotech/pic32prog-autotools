@@ -137,7 +137,7 @@ static void serial_execution(pickit_adapter_t *a)
     // Enter serial execution.
     if (debug_level > 0)
         fprintf(stderr, "%s: enter serial execution\n", a->name);
-    pickit_send(a, 29, CMD_EXECUTE_SCRIPT, 27,
+    pickit_send(a, 31, CMD_EXECUTE_SCRIPT, 29,
         SCRIPT_JT2_SENDCMD, TAP_SW_MTAP,
         SCRIPT_JT2_SENDCMD, MTAP_COMMAND,
         SCRIPT_JT2_XFERDATA8_LIT, MCHP_STATUS,
@@ -150,6 +150,7 @@ static void serial_execution(pickit_adapter_t *a)
         SCRIPT_JT2_SENDCMD, TAP_SW_MTAP,
         SCRIPT_JT2_SENDCMD, MTAP_COMMAND,
         SCRIPT_JT2_XFERDATA8_LIT, MCHP_DEASSERT_RST,
+        SCRIPT_DELAY_LONG, 20, // 100 msec
         SCRIPT_JT2_XFERDATA8_LIT, MCHP_FLASH_ENABLE);
 }
 
