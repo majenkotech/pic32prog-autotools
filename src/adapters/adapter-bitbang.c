@@ -663,12 +663,20 @@ static unsigned bitbang_read_word(adapter_t *adapter, unsigned addr)
         fprintf(stderr, "read_word\n");
 
     serial_execution(a);
-
+/*
     xfer_instruction(a, 0x3c04bf80);            // lui s3, 0xFF20
     xfer_instruction(a, 0x3c080000 | addr_hi);  // lui t0, addr_hi
     xfer_instruction(a, 0x35080000 | addr_lo);  // ori t0, addr_lo
     xfer_instruction(a, 0x8d090000);            // lw t1, 0(t0)
     xfer_instruction(a, 0xae690000);            // sw t1, 0(s3)
+*/
+
+    xfer_instruction(a, 0x3c13ff20);            // lui s3, 0xFF20
+    xfer_instruction(a, 0x3c080000 | addr_hi);  // lui t0, addr_hi
+    xfer_instruction(a, 0x35080000 | addr_lo);  // ori t0, addr_lo
+    xfer_instruction(a, 0x8d090000);            // lw t1, 0(t0)
+    xfer_instruction(a, 0xae690000);            // sw t1, 0(s3)
+    xfer_instruction(a, 0x00000000);            // nop
 
     bitbang_send(a, 1, 1, 5, ETAP_FASTDATA, 0); /* Send command. */
     bitbang_send(a, 0, 0, 33, 0, 1);            /* Get fastdata. */
@@ -741,28 +749,20 @@ static void bitbang_load_executive(adapter_t *adapter,
         xfer_instruction(a, 0x3c05001f);   // lui a1, 0x1f
         xfer_instruction(a, 0x34a50040);   // ori a1, 0x40   - a1 has 001f0040
         xfer_instruction(a, 0xac850000);   // sw  a1, 0(a0)  - BMXCON initialized
-        conprintf("1");
-        fflush(stdout);
 
         /* Step 2. */
         xfer_instruction(a, 0x34050800);   // li  a1, 0x800  - a1 has 00000800
         xfer_instruction(a, 0xac850010);   // sw  a1, 16(a0) - BMXDKPBA initialized
-        conprintf(" 2");
-        fflush(stdout);
 
         /* Step 3. */
         xfer_instruction(a, 0x8c850040);   // lw  a1, 64(a0) - load BMXDMSZ
         xfer_instruction(a, 0xac850020);   // sw  a1, 32(a0) - BMXDUDBA initialized
         xfer_instruction(a, 0xac850030);   // sw  a1, 48(a0) - BMXDUPBA initialized
-        conprintf(" 3");
-        fflush(stdout);
     }
 
     /* Step 4. */
     xfer_instruction(a, 0x3c04a000);   // lui a0, 0xa000
     xfer_instruction(a, 0x34840800);   // ori a0, 0x800  - a0 has a0000800
-    conprintf(" 4 (LDR)");
-    fflush(stdout);
 
     /* Download the PE loader. */
     int i;
@@ -776,16 +776,12 @@ static void bitbang_load_executive(adapter_t *adapter,
         xfer_instruction(a, 0xac860000);   // sw  a2, 0(a0)
         xfer_instruction(a, 0x24840004);   // addiu a0, 4
     }
-    conprintf(" 5");
-    fflush(stdout);
 
     /* Jump to PE loader (step 6). */
     xfer_instruction(a, 0x3c19a000);   // lui t9, 0xa000
     xfer_instruction(a, 0x37390800);   // ori t9, 0x800  - t9 has a0000800
     xfer_instruction(a, 0x03200008);   // jr  t9
     xfer_instruction(a, 0x00000000);   // nop
-    conprintf(" 6");
-    fflush(stdout);
 
     /* Switch from serial to fast execution mode. */
     //bitbang_send(a, 1, 1, 5, TAP_SW_ETAP, 0);
@@ -801,23 +797,17 @@ static void bitbang_load_executive(adapter_t *adapter,
     bitbang_send(a, 1, 1, 5, ETAP_FASTDATA, 0);  /* Send command. */
     xfer_fastdata(a, 0xa0000900);
     xfer_fastdata(a, nwords);
-    conprintf(" 7a (PE)");
-    fflush(stdout);
 
     /* Download the PE itself (step 7-B). */
     for (i = 0; i < nwords; i++) {
         xfer_fastdata(a, *pe++);
     }
     bitbang_delay10mS(a, 3);
-    conprintf(" 7b");
-    fflush(stdout);
 
     /* Download the PE instructions. */
     xfer_fastdata(a, 0);                       /* Step 8 - jump to PE. */
     xfer_fastdata(a, 0xDEAD0000);
     bitbang_delay10mS(a, 3);
-    conprintf(" 8");
-    fflush(stdout);
 
     xfer_fastdata(a, PE_EXEC_VERSION << 16);
 
