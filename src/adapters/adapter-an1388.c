@@ -412,6 +412,8 @@ adapter_t *adapter_open_an1388(int vid, int pid, const char *serial, int report)
     an1388_adapter_t *a;
     hid_device *hiddev;
 
+conprintf("Opening AN1388 adapter...\n");
+
     if (vid) {
         wchar_t buf[256];
         if (serial)
@@ -421,6 +423,7 @@ adapter_t *adapter_open_an1388(int vid, int pid, const char *serial, int report)
         hiddev = hid_open(MICROCHIP_VID, BOOTLOADER_PID, 0);
 
     if (! hiddev) {
+conprintf("Nothing found\n");
         if (vid)
             if (report) fprintf(stderr, "AN1388 bootloader not found: vid=%04x, pid=%04x, serial=%s\n",
                 vid, pid, serial ? : "(none)");

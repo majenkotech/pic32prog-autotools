@@ -823,28 +823,28 @@ usage:
         printf("\n");
         printf("Available protocols:\n");
 #ifdef ENABLE_AN1388 
-        printf("        AN1388 HID Bootloader\n");
+        printf("        AN1388 HID Bootloader (-d an1388:VID:PID)\n");
 #endif
 #ifdef ENABLE_AN1388_UART
-        printf("        AN1388 UART Bootloader\n");
+        printf("        AN1388 UART Bootloader (-d an1388:/dev/ttyXXX)\n");
 #endif
 #ifdef ENABLE_BITBANG
-        printf("        BitBang\n");
+        printf("        BitBang (-d ascii:/dev/ttyXXX)\n");
 #endif
 #ifdef ENABLE_HIDBOOT 
-        printf("        HIDBoot\n");
+        printf("        HIDBoot (-d hidboot:VID:PID)\n");
 #endif
 #ifdef ENABLE_MPSSE
         printf("        MPSSE\n");
 #endif
 #ifdef ENABLE_PICKIT2
-        printf("        PICkit2 and PICkit3 with Scripting Firmware\n");
+        printf("        PICkit2 and PICkit3 with Scripting Firmware (-d pickit2)\n");
 #endif
 #ifdef ENABLE_STK500V2
-        printf("        STK500v2 (chipKIT Bootloader)\n");
+        printf("        STK500v2 (chipKIT Bootloader) (-d /dev/ttyXXX)\n");
 #endif
 #ifdef ENABLE_UHB
-        printf("        UHB (MikroElektronika Bootloader)\n");
+        printf("        UHB (MikroElektronika Bootloader) (-d uhb)\n");
 #endif
         printf("\n");
         return 0;

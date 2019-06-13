@@ -574,6 +574,7 @@ target_t *target_open(const char *port_name, int baud_rate)
 
     while(open_retries > 0) {
         if (is_usb_device(port_name)) {
+conprintf("Trying top open adapter...\n");
             t->adapter = open_usb_adapter(port_name, open_retries == 1);
         } else {
             t->adapter = open_serial_adapter(port_name, baud_rate);

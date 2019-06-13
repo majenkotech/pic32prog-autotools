@@ -258,7 +258,7 @@ static void bitbang_send(bitbang_adapter_t *a,
 
         a->PendingHandshake = 0;
 
-        n = serial_read(&ch, 1, 250);
+        n = serial_read_full(&ch, 1, 250);
         a->Read2Count++;
 
         if (n != 1 || ch != '<')
@@ -329,7 +329,7 @@ static unsigned long long bitbang_recv(bitbang_adapter_t *a)
 
     int expected = (CFG4 ? a->CharToRead : a->BitsToRead);
 
-    n = serial_read(buffer, expected, 250);
+    n = serial_read_full(buffer, expected, 250);
     a->TotalCodeChrsRecv += n;
     a->Read1Count++;
     buffer[n] = 0;              // append trailing zero so can print as a string
@@ -1053,7 +1053,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
             serial_write(buffer, 2);
             conprintf(".");
             fflush(stdout);
-            n = serial_read(buffer, 2, 100);
+            n = serial_read_full(buffer, 2, 100);
             if ((n == 2) && (buffer[0] == STK_INSYNC) && (buffer[1] == STK_OK))
                 i = 100;
         }
@@ -1068,7 +1068,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
         buffer[0] = STK_ENTER_PROGMODE;                 // enter program mode (not needed)
         buffer[1] = CRC_EOP;
         serial_write(buffer, 2);
-        n = serial_read(buffer, 2, 100);
+        n = serial_read_full(buffer, 2, 100);
 
         if ((n != 2) || (buffer[0] != STK_INSYNC) || (buffer[1] != STK_OK)) {
             fprintf(stderr, "Failed to enter program mode\n");
@@ -1079,7 +1079,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
         buffer[0] = STK_READ_SIGN;                      // read signature bytes (3)
         buffer[1] = CRC_EOP;
         serial_write(buffer, 2);
-        n = serial_read(buffer, 5, 100);
+        n = serial_read_full(buffer, 5, 100);
 
         if ((n != 5) || (buffer[0] != STK_INSYNC) || (buffer[4] != STK_OK)) {
             fprintf(stderr, "Failed to get signature\n");
@@ -1103,7 +1103,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
             buffer[2] = (i >> 1) / 0x100;               // address high
             buffer[3] = CRC_EOP;
             serial_write(buffer, 4);
-            n = serial_read(buffer, 2, 100);
+            n = serial_read_full(buffer, 2, 100);
 
             if ((n != 2) || (buffer[0] != STK_INSYNC) || (buffer[1] != STK_OK)) {
                 fprintf(stderr, "\nFailed to load address %04x\n", i);
@@ -1118,7 +1118,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
             memcpy(&buffer[4], &ICSP[i], 0x80);         // data (128 bytes)
             buffer[4 + 0x80] = CRC_EOP;
             serial_write(buffer, 4 + 0x80 + 1);
-            n = serial_read(buffer, 2, 100);
+            n = serial_read_full(buffer, 2, 100);
 
             if ((n != 2) || (buffer[0] != STK_INSYNC) || (buffer[1] != STK_OK)) {
                 fprintf(stderr, "\nFailed to program page\n");
@@ -1131,7 +1131,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
         buffer[0] = STK_LEAVE_PROGMODE;                 // leave program mode
         buffer[1] = CRC_EOP;
         serial_write(buffer, 2);
-        n = serial_read(buffer, 2, 100);
+        n = serial_read_full(buffer, 2, 100);
 
         if ((n != 2) || (buffer[0] != STK_INSYNC) || (buffer[1] != STK_OK)) {
             fprintf(stderr, "Failed to exit program mode\n");
@@ -1183,7 +1183,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
                 conprintf("\b");
         conprintf("%c", ch);
         fflush(stdout);
-        n = serial_read(&ch, 1, 250);
+        n = serial_read_full(&ch, 1, 250);
         if (n == 1 && ch == '<')
             i = 100;
     }
@@ -1201,7 +1201,9 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
     unsigned char buffer[15] = "..............\0";
                             // "ascii ICSP v1X"
     serial_write(&ch, 1);
-    n = serial_read(buffer, 14, 250);
+    n = serial_read_full(buffer, 14, 250);
+
+conprintf("Got: %s\n", buffer);
 
     if (n == 14 && memcmp(buffer, "ascii ICSP v1", 13) == 0) {
         conprintf(" OK2 - %s\n", buffer);

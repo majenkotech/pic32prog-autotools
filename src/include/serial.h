@@ -41,6 +41,7 @@ int serial_write(unsigned char *data, int len);
  * Return number of bytes, or -1 on error.
  */
 int serial_read(unsigned char *data, int len, int timeout_msec);
+int serial_read_full(unsigned char *data, int len, int timeout_msec);
 
 /*
  * Check whether the given speed in bits per second

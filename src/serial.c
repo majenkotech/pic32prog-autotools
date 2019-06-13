@@ -226,6 +226,22 @@ again:
     return got;
 }
 
+/* Blocking read of len data */
+
+int serial_read_full(unsigned char *data, int len, int timeout_msec) {
+    unsigned char *buf = data;
+    int remaining = len;
+    int numRead = serial_read(buf, len, timeout_msec);
+    remaining -= numRead;
+    buf += numRead;
+    while (remaining > 0) {
+        numRead = serial_read(buf, len, timeout_msec);
+        buf += numRead;
+        remaining -= numRead;
+    }
+    return len;
+}
+
 /*
  * Close the serial port.
  */
