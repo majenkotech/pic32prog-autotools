@@ -94,27 +94,6 @@ case $host_os in
             HID_OBJ='hid/mac/hid.$(OBJEXT)'
         ])
 
-        OPT_ARCH=""
-
-        AC_ARG_ENABLE([32bit],
-            AS_HELP_STRING([--disable-32bit], [Disable 32-bit universal arch (OS X only)]))
-        AC_ARG_ENABLE([64bit],
-            AS_HELP_STRING([--disable-64bit], [Disable 64-bit universal arch (OS X only)]))
-        AC_ARG_ENABLE([ppc],
-            AS_HELP_STRING([--enable-ppc], [Enable PowerPC universal arch (OS X only)]))
-
-        AS_IF([test "x$enable_32bit" != "xno"], [
-            OPT_ARCH="${OPT_ARCH} -arch i386"
-        ])
-        AS_IF([test "x$enable_64bit" != "xno"], [
-            OPT_ARCH="${OPT_ARCH} -arch x86_64"
-        ])
-        AS_IF([test "x$enable_ppc" = "xyes"], [
-            OPT_ARCH="${OPT_ARCH} -arch ppc"
-        ])
-
-        AC_SUBST([OPT_ARCH])
-
         ;;
     linux* )
         AM_CONDITIONAL([OSX], false)
@@ -276,7 +255,7 @@ AC_SUBST([LIBUSB_STATIC])
 AC_SUBST([UDEV_LIBS])
 AC_SUBST([UDEV_CFLAGS])
 
-CFLAGS="$CFLAGS $OPT_ARCH -Iinclude $LIBUSB_CFLAGS $UDEV_CFLAGS $PTHREAD_CFLAGS"
+CFLAGS="$CFLAGS -Iinclude $LIBUSB_CFLAGS $UDEV_CFLAGS $PTHREAD_CFLAGS"
 # Checks for libraries.
 
 # Checks for header files.

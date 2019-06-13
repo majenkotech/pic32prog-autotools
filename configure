@@ -646,7 +646,6 @@ EGREP
 GREP
 CPP
 SED
-OPT_ARCH
 LIBUSB_LIBS
 LIBUSB_CFLAGS
 LIBUSB_PREFIX
@@ -751,9 +750,6 @@ enable_hidboot
 enable_mpsse
 enable_pickit2
 enable_uhb
-enable_32bit
-enable_64bit
-enable_ppc
 with_gnu_ld
 enable_rpath
 with_libiconv_prefix
@@ -1410,9 +1406,6 @@ Optional Features:
   --disable-mpsse         Disable MPSSE adapter
   --disable-pickit2       Disable PICkit2 adapter
   --disable-uhb           Disable UHB adapter
-  --disable-32bit         Disable 32-bit universal arch (OS X only)
-  --disable-64bit         Disable 64-bit universal arch (OS X only)
-  --enable-ppc            Enable PowerPC universal arch (OS X only)
   --disable-rpath         do not hardcode runtime library paths
 
 Optional Packages:
@@ -4325,42 +4318,6 @@ fi
             HID_OBJ='hid/mac/hid.$(OBJEXT)'
 
 fi
-
-        OPT_ARCH=""
-
-        # Check whether --enable-32bit was given.
-if test "${enable_32bit+set}" = set; then :
-  enableval=$enable_32bit;
-fi
-
-        # Check whether --enable-64bit was given.
-if test "${enable_64bit+set}" = set; then :
-  enableval=$enable_64bit;
-fi
-
-        # Check whether --enable-ppc was given.
-if test "${enable_ppc+set}" = set; then :
-  enableval=$enable_ppc;
-fi
-
-
-        if test "x$enable_32bit" != "xno"; then :
-
-            OPT_ARCH="${OPT_ARCH} -arch i386"
-
-fi
-        if test "x$enable_64bit" != "xno"; then :
-
-            OPT_ARCH="${OPT_ARCH} -arch x86_64"
-
-fi
-        if test "x$enable_ppc" = "xyes"; then :
-
-            OPT_ARCH="${OPT_ARCH} -arch ppc"
-
-fi
-
-
 
         ;;
     linux* )
@@ -7510,7 +7467,7 @@ $as_echo "$GITCOUNT" >&6; }
 
 
 
-CFLAGS="$CFLAGS $OPT_ARCH -Iinclude $LIBUSB_CFLAGS $UDEV_CFLAGS $PTHREAD_CFLAGS"
+CFLAGS="$CFLAGS -Iinclude $LIBUSB_CFLAGS $UDEV_CFLAGS $PTHREAD_CFLAGS"
 # Checks for libraries.
 
 # Checks for header files.

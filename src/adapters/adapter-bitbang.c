@@ -426,24 +426,27 @@ static void bitbang_close(adapter_t *adapter, int power_on)
     bitbang_ICSP_enable(a, 0);
     gettimeofday(&a->T2, 0);
 
-    conprintf("\n");
-    conprintf("total TDI/TMS pairs sent = %i pairs\n", a->TotalBitPairsSent);
-    conprintf("total TDO bits received  = %i bits\n",  a->TotalBitsReceived);
+    if (debug_level > 0) {
 
-    conprintf("total ascii codes sent   = %i\n", a->TotalCodeChrsSent);
-    conprintf("total ascii codes recv   = %i\n", a->TotalCodeChrsRecv);
-    conprintf("maximum continuous write = %i chars\n", a->MaxBufferedWrites);
+        conprintf("\n");
+        conprintf("total TDI/TMS pairs sent = %i pairs\n", a->TotalBitPairsSent);
+        conprintf("total TDO bits received  = %i bits\n",  a->TotalBitsReceived);
 
-    conprintf("O/S serial writes        = %i\n", a->WriteCount);
-    conprintf("O/S serial reads (data)  = %i\n", a->Read1Count);
-    conprintf("O/S serial reads (sync)  = %i\n", a->Read2Count);
-    conprintf("XferFastData count       = %i\n", a->FDataCount);
-    conprintf("10mS delays (E/X/R)      = %i/%i/%i\n", a->DelayCount[0],
-                                                    a->DelayCount[1],
-                                                    a->DelayCount[2]);
-    conprintf("elapsed programming time = %lum %02lus\n", (a->T2.tv_sec - a->T1.tv_sec) / 60,
-                                                       (a->T2.tv_sec - a->T1.tv_sec) % 60);
+        conprintf("total ascii codes sent   = %i\n", a->TotalCodeChrsSent);
+        conprintf("total ascii codes recv   = %i\n", a->TotalCodeChrsRecv);
+        conprintf("maximum continuous write = %i chars\n", a->MaxBufferedWrites);
 
+        conprintf("O/S serial writes        = %i\n", a->WriteCount);
+        conprintf("O/S serial reads (data)  = %i\n", a->Read1Count);
+        conprintf("O/S serial reads (sync)  = %i\n", a->Read2Count);
+        conprintf("XferFastData count       = %i\n", a->FDataCount);
+        conprintf("10mS delays (E/X/R)      = %i/%i/%i\n", a->DelayCount[0],
+                                                        a->DelayCount[1],
+                                                        a->DelayCount[2]);
+        conprintf("elapsed programming time = %lum %02lus\n", (a->T2.tv_sec - a->T1.tv_sec) / 60,
+                                                           (a->T2.tv_sec - a->T1.tv_sec) % 60);
+
+    }
     serial_close();                    // at this point we are exiting application???
 //  free(a);                           // suspect this line was causing XP CRASHES
                                        // - shouldn't be needed anyway
@@ -1157,7 +1160,7 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
     }
 
     /* Open serial port */
-    if (serial_open(port, 115200) < 0) {
+    if (serial_open(port, baud_rate) < 0) {
         /* failed to open serial port */
         fprintf(stderr, "Unable to configure serial port %s\n", port);
         serial_close();
@@ -1194,7 +1197,6 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
         free(a);
         return 0;
     }
-    conprintf(" OK1");
     fflush(stdout);
 
     ch = '?';
@@ -1203,10 +1205,8 @@ adapter_t *adapter_open_bitbang(const char *port, int baud_rate)
     serial_write(&ch, 1);
     n = serial_read_full(buffer, 14, 250);
 
-conprintf("Got: %s\n", buffer);
-
     if (n == 14 && memcmp(buffer, "ascii ICSP v1", 13) == 0) {
-        conprintf(" OK2 - %s\n", buffer);
+        conprintf("\r      Adapter: %s\n", buffer);
     } else {
         fprintf(stderr, "\nBad response from 'ascii ICSP' adapter\n");
         serial_close();
