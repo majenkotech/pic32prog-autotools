@@ -105,21 +105,20 @@ static int an1388_recv(hid_device *hiddev, unsigned char *buf)
 
     int q = 0;
 
-    n = hid_read(hiddev, buf, 64);
+    n = hid_read_timeout(hiddev, buf, 64, 100);
     while (n == 0 && q < 10) {
-        n = hid_read(hiddev, buf, 64);
+        n = hid_read_timeout(hiddev, buf, 64, 100);
         q++;
         if (debug_level > 0) fprintf(stderr, "Read try %d: hid_read returned %d\n", n, q);
     }
 
     if (n < 0) {
         fprintf(stderr, "hidboot: error %d receiving packet\n", n);
-        exit(-1);
+        return -1;
     }
 
     if (q >= 10) {
-        fprintf(stderr, "hidboot: timeout receiving packet\n");
-        exit(-1);
+        return -2;
     }
     if (debug_level > 0) {
         int k;
@@ -153,39 +152,52 @@ static void an1388_command(an1388_adapter_t *a, unsigned char cmd,
     unsigned char buf [128]; // Important: need enough room for every byte to be DLEd
     unsigned i, n, c, crc;
 
-    if (debug_level > 0) {
-        int k;
-        fprintf(stderr, "---Cmd%d", cmd);
-        for (k=0; k<data_len; ++k) {
-            if (k != 0 && (k & 15) == 0)
-                fprintf(stderr, "\n       ");
-            fprintf(stderr, " %02x", data[k]);
+    unsigned retries = 10;
+
+    do {
+        if (debug_level > 0) {
+            int k;
+            fprintf(stderr, "---Cmd%d", cmd);
+            for (k=0; k<data_len; ++k) {
+                if (k != 0 && (k & 15) == 0)
+                    fprintf(stderr, "\n       ");
+                fprintf(stderr, " %02x", data[k]);
+            }
+            fprintf(stderr, "\n");
         }
-        fprintf(stderr, "\n");
+        memset(buf, FRAME_EOT, sizeof(buf));
+        n = 0;
+        buf[n++] = FRAME_SOH;
+    
+        n = add_byte(cmd, buf, n);
+        crc = calculate_crc(0, &cmd, 1);
+    
+        if (data_len > 0) {
+            for (i=0; i<data_len; ++i)
+                n = add_byte(data[i], buf, n);
+            crc = calculate_crc(crc, data, data_len);
+        }
+        n = add_byte(crc, buf, n);
+        n = add_byte(crc >> 8, buf, n);
+    
+        buf[n++] = FRAME_EOT;
+        an1388_send(a->hiddev, buf, n);
+
+        if (cmd == CMD_JUMP_APP) {
+            /* No reply expected. */
+            return;
+        }
+        n = an1388_recv(a->hiddev, buf);
+    } while ((n < 0) && ((--retries) > 0));
+
+    if (n < 0) {
+	if (n == -1) {
+	} else if (n == -2) {
+		fprintf(stderr, "hidboot: timeout receiving packet\n");
+	}
+        fprintf(stderr, "Too many retries\n");
+        exit(-1);
     }
-    memset(buf, FRAME_EOT, sizeof(buf));
-    n = 0;
-    buf[n++] = FRAME_SOH;
-
-    n = add_byte(cmd, buf, n);
-    crc = calculate_crc(0, &cmd, 1);
-
-    if (data_len > 0) {
-        for (i=0; i<data_len; ++i)
-            n = add_byte(data[i], buf, n);
-        crc = calculate_crc(crc, data, data_len);
-    }
-    n = add_byte(crc, buf, n);
-    n = add_byte(crc >> 8, buf, n);
-
-    buf[n++] = FRAME_EOT;
-    an1388_send(a->hiddev, buf, n);
-
-    if (cmd == CMD_JUMP_APP) {
-        /* No reply expected. */
-        return;
-    }
-    n = an1388_recv(a->hiddev, buf);
     c = 0;
     for (i=0; i<n; ++i) {
         switch (buf[i]) {
