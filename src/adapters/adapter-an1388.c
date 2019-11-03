@@ -30,8 +30,11 @@
 #define CMD_READ_CRC        0x04
 #define CMD_JUMP_APP        0x05
 #define CMD_GET_DEVID       0x06
+#define CMD_GET_FEATURES    0x07
 
-int enableChipLookup = 0;
+unsigned int bootloaderFeatures = 0;
+#define BF_CHIPID           0x01
+#define BF_FEATURES         0x02
 
 typedef struct {
     /* Common part */
@@ -247,7 +250,7 @@ static void an1388_close(adapter_t *adapter, int power_on)
  */
 static unsigned an1388_get_idcode(adapter_t *adapter)
 {
-    if (enableChipLookup == 0) {
+    if ((bootloaderFeatures & BF_CHIPID) == 0) {
         return 0xDEAFB00B;
     }
 
@@ -454,16 +457,23 @@ conprintf("Nothing found\n");
     conprintf("      Adapter: AN1388 Bootloader Version %d.%d\n",
         a->reply[1], a->reply[2]);
 
-    if (a->reply[1] == 1 && a->reply[2] == 5) {
-        enableChipLookup = 1;
-    } else {
-        enableChipLookup = 0;
+    unsigned int version = (a->reply[1]) << 8 | a->reply[2];
+
+    bootloaderFeatures = 0;
+    if (version >= 0x0105) bootloaderFeatures |= BF_CHIPID;
+    if (version >= 0x0106) bootloaderFeatures |= BF_FEATURES;
+
+    if ((bootloaderFeatures & BF_FEATURES) == BF_FEATURES) {
+        an1388_command(a, CMD_GET_FEATURES, 0, 0);
+        bootloaderFeatures = (a->reply[1] << 24) | (a->reply[2] << 16) | (a->reply[3] << 8) | a->reply[4];
+        conprintf("     Features: %08x\n", bootloaderFeatures);
     }
 
     a->adapter.user_start = 0x1d000000;
     a->adapter.user_nbytes = 512 * 1024;
-    conprintf(" Program area: %08x-%08x\n", a->adapter.user_start,
-        a->adapter.user_start + a->adapter.user_nbytes - 1);
+// This is pointless, since it is often wrong.
+//    conprintf(" Program area: %08x-%08x\n", a->adapter.user_start,
+//        a->adapter.user_start + a->adapter.user_nbytes - 1);
     a->adapter.block_override = 0;
     a->adapter.flags = (AD_PROBE | AD_ERASE | AD_READ | AD_WRITE);
 
