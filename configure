@@ -2405,7 +2405,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 ac_config_headers="$ac_config_headers config.h"
 
-am__api_version='1.15'
+am__api_version='1.16'
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -2950,8 +2950,8 @@ MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 
 # For better backward compatibility.  To be removed once Automake 1.9.x
 # dies out for good.  For more background, see:
-# <http://lists.gnu.org/archive/html/automake/2012-07/msg00001.html>
-# <http://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
+# <https://lists.gnu.org/archive/html/automake/2012-07/msg00001.html>
+# <https://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
 mkdir_p='$(MKDIR_P)'
 
 # We need awk for the "check" target (and possibly the TAP driver).  The
@@ -3002,7 +3002,7 @@ END
 Aborting the configuration process, to ensure you take notice of the issue.
 
 You can download and install GNU coreutils to get an 'rm' implementation
-that behaves properly: <http://www.gnu.org/software/coreutils/>.
+that behaves properly: <https://www.gnu.org/software/coreutils/>.
 
 If you want to complete the configuration process using your problematic
 'rm' anyway, export the environment variable ACCEPT_INFERIOR_RM_PROGRAM
@@ -4239,8 +4239,8 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBUSB" >&5
-$as_echo_n "checking for LIBUSB... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libusb-1.0" >&5
+$as_echo_n "checking for libusb-1.0... " >&6; }
 
 if test -n "$LIBUSB_CFLAGS"; then
     pkg_cv_LIBUSB_CFLAGS="$LIBUSB_CFLAGS"
@@ -4280,7 +4280,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -4298,7 +4298,7 @@ fi
 
 	WANT_USB=-1; WANT_HID=0
 elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	WANT_USB=-1; WANT_HID=0
 else
@@ -5336,8 +5336,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBUSB" >&5
-$as_echo_n "checking for LIBUSB... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libusb-1.0" >&5
+$as_echo_n "checking for libusb-1.0... " >&6; }
 
 if test -n "$LIBUSB_CFLAGS"; then
     pkg_cv_LIBUSB_CFLAGS="$LIBUSB_CFLAGS"
@@ -5377,7 +5377,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -5395,7 +5395,7 @@ fi
 
 	WANT_USB=-1; WANT_HID=0; LIBUSB_STATIC=''
 elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	WANT_USB=-1; WANT_HID=0; LIBUSB_STATIC=''
 else
@@ -5409,8 +5409,8 @@ $as_echo "yes" >&6; }
 fi
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for UDEV" >&5
-$as_echo_n "checking for UDEV... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libudev" >&5
+$as_echo_n "checking for libudev... " >&6; }
 
 if test -n "$UDEV_CFLAGS"; then
     pkg_cv_UDEV_CFLAGS="$UDEV_CFLAGS"
@@ -5450,7 +5450,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -5468,7 +5468,7 @@ fi
 
 	WANT_USB=-1; WANT_HID=0; LIBUSB_STATIC=''
 elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	WANT_USB=-1; WANT_HID=0; LIBUSB_STATIC=''
 else
@@ -7186,8 +7186,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBUSB" >&5
-$as_echo_n "checking for LIBUSB... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libusb-1.0" >&5
+$as_echo_n "checking for libusb-1.0... " >&6; }
 
 if test -n "$LIBUSB_CFLAGS"; then
     pkg_cv_LIBUSB_CFLAGS="$LIBUSB_CFLAGS"
@@ -7227,7 +7227,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -7245,7 +7245,7 @@ fi
 
 	WANT_USB=-1; WANT_HID=0; LIBUSB_STATIC=''
 elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	WANT_USB=-1; WANT_HID=0; LIBUSB_STATIC=''
 else
@@ -7316,8 +7316,8 @@ fi
 fi
         if test "x$WANT_USB" = "x1"; then :
 
-            LIBUSB_LIBS="-Llibusb-win32 -lusb-1.0 -lsetupapi"
-            LIBUSB_CFLAGS="-Ilibusb-win32/libusb-1.0"
+            LIBUSB_LIBS="-Llibusb-win32/MinGW64/static -lusb-1.0 -lsetupapi"
+            LIBUSB_CFLAGS="-Ilibusb-win32/include/libusb-1.0"
 
 fi
         if test "x$WANT_HID" = "x1"; then :

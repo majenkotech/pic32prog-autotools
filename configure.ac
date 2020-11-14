@@ -151,8 +151,8 @@ case $host_os in
             HID_OBJ='hid/linux/hid.$(OBJEXT)'
         ])
         AS_IF([test "x$WANT_USB" = "x1"], [
-            LIBUSB_LIBS="-Llibusb-win32 -lusb-1.0 -lsetupapi"
-            LIBUSB_CFLAGS="-Ilibusb-win32/libusb-1.0"
+            LIBUSB_LIBS="-Llibusb-win32/MinGW64/static -lusb-1.0 -lsetupapi"
+            LIBUSB_CFLAGS="-Ilibusb-win32/include/libusb-1.0"
         ])
         AS_IF([test "x$WANT_HID" = "x1"], [
             HID_SRC="hid/windows/hid.c"
