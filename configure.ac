@@ -86,7 +86,7 @@ case $host_os in
             LIBUSB_PREFIX=`pkg-config --libs-only-L libusb-1.0 | cut -c3-`
             AC_SUBST([LIBUSB_PREFIX])
             PKG_CHECK_MODULES(LIBUSB, libusb-1.0,[
-                LIBUSB_LIBS="-framework IOKit -framework CoreFoundation ${LIBUSB_PREFIX}/libusb-1.0.a -lobjc"
+                LIBUSB_LIBS="-framework IOKit -framework CoreFoundation -framework Security ${LIBUSB_PREFIX}/libusb-1.0.a -lobjc"
             ],[WANT_USB=-1; WANT_HID=0])
         ])
         AS_IF([test "x$WANT_HID" = "x1"], [
