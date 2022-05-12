@@ -233,7 +233,7 @@ AS_IF([test "x$enable_uhb" != "xno"], [
 AC_MSG_CHECKING([build number])
 GITCOUNT=0
 if [[ -d .git ]]; then
-    GITCOUNT=`git rev-list HEAD --count` 2>&5
+    GITCOUNT=`git tag -l --sort -version:refname | head -n 1` 2>&5
 else
     if [[ -f .version ]]; then
         GITCOUNT=`cat .version`
