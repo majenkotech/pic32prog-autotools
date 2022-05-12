@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "adapter.h"
 #include "pic32.h"
@@ -26,6 +27,8 @@
 #define CMD_PROGRAM_FLASH   0x03
 #define CMD_READ_CRC        0x04
 #define CMD_JUMP_APP        0x05
+
+extern unsigned long open_delay;
 
 typedef struct {
     /* Common part */
@@ -367,6 +370,9 @@ adapter_t *adapter_open_an1388_uart(const char *port, int baud_rate)
     if (serial_open(port, baud_rate) < 0) {
         /* failed to open serial port */
         return 0;
+    }
+    if (open_delay > 0) {
+            usleep(open_delay * 1000);
     }
 
     a = calloc(1, sizeof(*a));

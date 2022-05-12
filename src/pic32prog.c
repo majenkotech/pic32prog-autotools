@@ -59,6 +59,7 @@ unsigned devcfg_offset;         /* Offset of devcfg registers in boot data */
 int total_bytes;
 
 unsigned long open_retries = 1;
+unsigned long open_delay = 100;
 unsigned force;
 
 int quiet = 0;
@@ -328,6 +329,8 @@ void quit(void)
         target_close(target, power_on);
         free(target);
         target = 0;
+    } else {
+        serial_close();
     }
 }
 
@@ -720,9 +723,12 @@ int main(int argc, char **argv)
 #endif
     signal(SIGTERM, interrupted);
 
-    while ((ch = getopt_long(argc, argv, "qfvDhrpeCVWSd:b:B:R:",
+    while ((ch = getopt_long(argc, argv, "qfvDhrpeCVWSd:b:B:R:o:",
       long_options, 0)) != -1) {
         switch (ch) {
+        case 'o':
+            open_delay = strtoul(optarg, 0, 0);
+            continue;
         case 'q':
             ++quiet;
             continue;
@@ -820,6 +826,7 @@ usage:
         printf("       -W, --warranty      Print warranty information\n");
         printf("       -S, --skip-verify   Skip the write verification step\n");
         printf("       -R,                 Retry opening the port this number of times\n");
+        printf("       -o millis           Insert a delay after opening the target\n");
         printf("\n");
         printf("Available protocols:\n");
 #ifdef ENABLE_AN1388 
